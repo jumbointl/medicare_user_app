@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "395011186772",
+    "project_id": "solespresspy-medicare",
+    "storage_bucket": "solespresspy-medicare.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395011186772:android:50d8f005bb60fe1bb44dc1",
+        "android_client_info": {
+          "package_name": "com.solexpresspy.medicare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "395011186772-voiio0lk6qmqhhh09tl87vktlpf9jtqs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.solexpresspy.medicare",
+            "certificate_hash": "e2f708696ee9671544145e4972e91d453ef53c4f"
+          }
+        },
+        {
+          "client_id": "395011186772-5vn6o2hhimt0epgn9rtldsicmsk9kalu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdC899_KCNJ3MlwxIi99kGz3sgxS1JStM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "395011186772-5vn6o2hhimt0epgn9rtldsicmsk9kalu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "395011186772-1fsu3qe06tecroipplm7lsbv5q3la8d9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.solexpresspy.medicare"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395011186772:android:c4b60078485d744db44dc1",
+        "android_client_info": {
+          "package_name": "com.solexpresspy.medicaredoctor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "395011186772-s3utr991phsid7bpnpikf787jho9n8pp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.solexpresspy.medicaredoctor",
+            "certificate_hash": "e2f708696ee9671544145e4972e91d453ef53c4f"
+          }
+        },
+        {
+          "client_id": "395011186772-5vn6o2hhimt0epgn9rtldsicmsk9kalu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdC899_KCNJ3MlwxIi99kGz3sgxS1JStM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "395011186772-5vn6o2hhimt0epgn9rtldsicmsk9kalu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "395011186772-1fsu3qe06tecroipplm7lsbv5q3la8d9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.solexpresspy.medicare"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

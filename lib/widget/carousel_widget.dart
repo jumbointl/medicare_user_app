@@ -16,6 +16,7 @@ class _CarouselSliderWidgetState extends State<CarouselSliderWidget> {
   @override
   Widget build(BuildContext context) {
     // DeviceType deviceType = getDeviceType(MediaQuery.of(context));
+    debugPrint("imagesUrl ${widget.imagesUrl}");
     return GestureDetector(
       onTap: (){
       },

@@ -130,7 +130,7 @@ class _FamilyMemberListPageState extends State<FamilyMemberListPage> {
                 _openDialogBox(familyMembersModel);
               },
               ),
-              title: Text("${familyMembersModel.fName??""} ${familyMembersModel.lName??""}",
+              title: Text("full_name".trArgs([familyMembersModel.fName??"", familyMembersModel.lName??""]),
                 style: const TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 15

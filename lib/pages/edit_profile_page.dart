@@ -167,7 +167,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       children: [
         _buildUpperSection(),
         const SizedBox(height:70),
-         Text("${userModel?.fName??""} ${userModel?.lName??""}",
+         Text("full_name".trArgs([userModel?.fName??"", userModel?.lName??""]),
           textAlign: TextAlign.center,
           style:const  TextStyle(
               fontWeight: FontWeight.w600,

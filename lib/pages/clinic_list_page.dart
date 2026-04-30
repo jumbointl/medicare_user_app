@@ -3,12 +3,14 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/clinic_service.dart';
 import '../widget/app_bar_widget.dart';
+import '../widget/appointment_only_back_guard.dart';
 import 'package:get/get.dart';
 import '../helpers/route_helper.dart';
 import '../model/city_model.dart';
 import '../model/clinic_model.dart';
 import '../services/city_service.dart';
 import '../utilities/api_content.dart';
+import '../utilities/clinic_config.dart';
 import '../utilities/colors_constant.dart';
 import '../widget/image_box_widget.dart';
 import '../widget/loading_Indicator_widget.dart';
@@ -42,9 +44,12 @@ class _ClinicListPageState extends State<ClinicListPage> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: IAppBar.commonAppBar(title: "clinics".tr),
-      body:  _isLoading?const ILoadingIndicatorWidget():_buildBody(),
+    return AppointmentOnlyBackGuard(
+      child: Scaffold(
+        appBar: IAppBar.commonAppBar(title: "clinics".tr),
+        drawer: appointmentOnlyDrawer(),
+        body: _isLoading ? const ILoadingIndicatorWidget() : _buildBody(),
+      ),
     );
   }
 
@@ -117,7 +122,8 @@ class _ClinicListPageState extends State<ClinicListPage> {
       color: ColorResources.cardBgColor,
       elevation: .1,
       child: ListTile(
-        onTap: (){
+        onTap: () async {
+          await ClinicConfig.setActiveClinicId(clinicModel.id);
           Get.toNamed(RouteHelper.getClinicPageRoute(clinicId: clinicModel.id.toString()));
         },
         title: Text(clinicModel.title??"",
@@ -262,7 +268,7 @@ class _ClinicListPageState extends State<ClinicListPage> {
                                             _searchTextDoctorsController.clear();
                                             getClinicData();
                                           },
-                                          title: Text("${cityMode.title},${cityMode.stateTitle}",
+                                          title: Text("city_state".trArgs([cityMode.title??"", cityMode.stateTitle??""]),
                                             style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.w500

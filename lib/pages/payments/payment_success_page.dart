@@ -93,7 +93,7 @@ class _PaymentSuccessPageState extends State<PaymentSuccessPage> {
                 fontWeight: FontWeight.w500
             ),),
           const SizedBox(height: 10),
-          Text("$counterValue (s)",
+          Text("seconds_value".trParams({"value": "$counterValue"}),
             style:const  TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500

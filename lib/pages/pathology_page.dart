@@ -32,7 +32,8 @@ import 'auth/login_page.dart';
 
 class PathologyPage extends StatefulWidget {
   final String? pathId;
-  const PathologyPage({super.key,this.pathId});
+  final bool showAppBar;
+  const PathologyPage({super.key,this.pathId,this.showAppBar=true});
 
   @override
   State<PathologyPage> createState() => _PathologyPageState();
@@ -61,7 +62,9 @@ class _PathologyPageState extends State<PathologyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: IAppBar.commonAppBar(title: pathologistModel?.title??"pathology_lab".tr),
+        appBar: widget.showAppBar
+            ? IAppBar.commonAppBar(title: pathologistModel?.title??"pathology_lab".tr)
+            : null,
         body:_isLoading||pathologistModel==null?ILoadingIndicatorWidget():_buildBody()
     );
   }

@@ -1,10 +1,13 @@
 import 'package:get/get.dart';
 import 'package:medicare_user_app/pages/ai_chat_page.dart';
+import '../pages/appointment_only_home_page.dart';
 import '../pages/blog_details_page.dart';
 import '../pages/clinic_list_page.dart';
 import '../pages/clinic_page.dart';
+import '../pages/coming_soon_page.dart';
 import '../pages/lab_booking_details_page.dart';
 import '../pages/lab_booking_history_page.dart';
+import '../utilities/clinic_config.dart';
 import '../languages/language_page.dart';
 import '../pages/pathology_page.dart';
 import '../pages/patient_file_page.dart';
@@ -15,7 +18,6 @@ import '../pages/doctors_details_page.dart';
 import '../pages/doctors_list_page.dart';
 import '../pages/edit_profile_page.dart';
 import '../pages/family_member_list_page.dart';
-import '../pages/home_page.dart';
 import '../pages/lab_cart_check_out_page.dart';
 import '../pages/my_booking_page.dart';
 import '../pages/notification_details_page.dart';
@@ -86,7 +88,16 @@ class RouteHelper {
     required String selectedDeptTitle,
     required String selectedDeptId
   }) => "$doctorsListPage?selectedDeptTitle=$selectedDeptTitle&selectedDeptId=$selectedDeptId";
-  static String getDoctorsDetailsPageRoute({required String doctId}) => "$doctorsDetailsPage?doctId=$doctId";
+  static String getDoctorsDetailsPageRoute({
+    required String doctId,
+    String? clinicId,
+  }) {
+    final qs = StringBuffer('$doctorsDetailsPage?doctId=$doctId');
+    if (clinicId != null && clinicId.isNotEmpty && clinicId != 'null') {
+      qs.write('&clinicId=$clinicId');
+    }
+    return qs.toString();
+  }
   static String getEditUserProfilePageRoute() => editUserProfilePage;
   static String getContactUsPageRoute() => contactUsPage;
   static String getPatientFilePageRoute() => patientFilePage;
@@ -131,7 +142,7 @@ class RouteHelper {
   static List<GetPage> routes = [
     //Home Page
 
-    GetPage(name: homePage, page: () => const HomePage()),
+    GetPage(name: homePage, page: () => const AppointmentOnlyHomePage()),
     GetPage(name: clinicListPage, page: () => const ClinicListPage()),
     GetPage(name: editUserProfilePage, page: () => const EditProfilePage()),
     GetPage(name: doctorsListPage, page: () =>  DoctorsListPage(
@@ -151,12 +162,14 @@ class RouteHelper {
     GetPage(name: appointmentDetailsPagePage, page: () =>  AppointmentDetailsPage(
       appId: Get.parameters['appId'],
     )),
-    GetPage(name: labBookingDetailsPage, page: () =>  LabBookingDetailsPage(
-      labBookingId: Get.parameters['labBookingId'],
-    )),
-    GetPage(name: blogDetailsPage, page: () =>  BlogDetailsPage(
-      id: Get.parameters['id'],
-    )),
+    GetPage(name: labBookingDetailsPage, page: () =>  ClinicConfig.showLab
+        ? LabBookingDetailsPage(
+            labBookingId: Get.parameters['labBookingId'],
+          )
+        : const ComingSoonPage()),
+    GetPage(name: blogDetailsPage, page: () => ClinicConfig.showBlog
+        ? BlogDetailsPage(id: Get.parameters['id'])
+        : const ComingSoonPage()),
 
     GetPage(name: walletPage, page: () => const WalletPage()),
 
@@ -179,15 +192,21 @@ class RouteHelper {
     GetPage(name: clinicPage, page: () =>  ClinicPage(
       clinicId: Get.parameters['clinicId'],
     )),
-    GetPage(name: pathologistListPage, page: () =>  const PathologistListPage()),
-    GetPage(name: pathologyPage, page: () =>  PathologyPage(
-      pathId: Get.parameters['pathId'],
-    )),
-     GetPage(name: labCartCheckOutPage, page: () =>   LabCartCheckOutPage(
-       pathId: Get.parameters['pathId'],
-     )),
-    GetPage(name: blogListPage, page: () =>  const BlogListPage()),
-    GetPage(name: labBookingHistoryPage, page: () =>  const LabBookingHistoryPage()),
+    GetPage(name: pathologistListPage, page: () => ClinicConfig.showLab
+        ? const PathologistListPage()
+        : const ComingSoonPage()),
+    GetPage(name: pathologyPage, page: () => ClinicConfig.showLab
+        ? PathologyPage(pathId: Get.parameters['pathId'])
+        : const ComingSoonPage()),
+    GetPage(name: labCartCheckOutPage, page: () => ClinicConfig.showLab
+        ? LabCartCheckOutPage(pathId: Get.parameters['pathId'])
+        : const ComingSoonPage()),
+    GetPage(name: blogListPage, page: () => ClinicConfig.showBlog
+        ? const BlogListPage()
+        : const ComingSoonPage()),
+    GetPage(name: labBookingHistoryPage, page: () => ClinicConfig.showLab
+        ? const LabBookingHistoryPage()
+        : const ComingSoonPage()),
     GetPage(name: aiChatPage, page: () =>  AiChatPage()),
   ];
 

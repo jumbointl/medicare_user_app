@@ -11,6 +11,7 @@ import '../languages/version_control.dart';
 import '../pages/auth/login_page.dart';
 import 'package:get/get.dart';
 import '../utilities/api_content.dart';
+import '../utilities/clinic_config.dart';
 import '../utilities/image_constants.dart';
 import '../widget/toast_message.dart';
 import '../controller/notification_dot_controller.dart';
@@ -87,7 +88,7 @@ class IDrawerWidget{
               Get.to(()=>LoginPage(onSuccessLogin:  (){ Get.toNamed(RouteHelper.getMyBookingPageRoute());}));
             }
           }),
-          _buildCardBox("lab_booking".tr,Icons.history,()async{
+          if (ClinicConfig.showLab) _buildCardBox("lab_booking".tr,Icons.history,()async{
             Get.back();
             SharedPreferences preferences = await SharedPreferences.getInstance();
 

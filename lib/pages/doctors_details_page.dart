@@ -23,7 +23,6 @@ import '../model/doctors_model.dart';
 import '../model/doctors_review_model.dart';
 import '../model/family_members_model.dart';
 import '../model/time_slots_model.dart';
-import '../model/user_model.dart';
 import '../pages/full_screen_image_viewer_page.dart';
 import '../services/appointment_service.dart';
 import '../services/coupon_service.dart';
@@ -32,11 +31,13 @@ import '../services/family_members_service.dart';
 import '../services/payment_gateway_service.dart';
 import '../services/user_service.dart';
 import '../utilities/api_content.dart';
+import '../utilities/clinic_config.dart';
 import '../utilities/app_constans.dart';
 import '../utilities/colors_constant.dart';
 import '../utilities/image_constants.dart';
 import '../utilities/sharedpreference_constants.dart';
 import '../widget/app_bar_widget.dart';
+import '../widget/appointment_only_back_guard.dart';
 import '../widget/button_widget.dart';
 import '../widget/image_box_widget.dart';
 import '../widget/loading_Indicator_widget.dart';
@@ -54,7 +55,6 @@ class DoctorsDetailsPage extends StatefulWidget {
 }
 
 class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
-  UserModel? userModel;
   ScrollController scrollController = ScrollController();
 
   String _selectedDate = "";
@@ -66,7 +66,11 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
   String _selectedAppointmentType = "0";
 
   List<FamilyMembersModel> familyModelList = [];
+  // null => paciente = usuario logueado (default).
+  // non-null => paciente = familiar elegido.
   FamilyMembersModel? selectedFamilyMemberModel;
+  String _selfName = "";
+  String _selfPhone = "";
 
   int selectedPaymentTypeId = 1100;
 
@@ -137,12 +141,16 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: ColorResources.bgColor,
-      appBar: IAppBar.commonAppBar(title: "book_appointment".tr),
-      body: _doctorsModel == null || _isLoading
-          ? const ILoadingIndicatorWidget()
-          : _buildBody(_doctorsModel!),
+    debugPrint("DoctorDetailPage doctId ${widget.doctId}");
+    return AppointmentOnlyBackGuard(
+      child: Scaffold(
+        backgroundColor: ColorResources.bgColor,
+        appBar: IAppBar.commonAppBar(title: "book_appointment".tr),
+        drawer: appointmentOnlyDrawer(),
+        body: _doctorsModel == null || _isLoading
+            ? const ILoadingIndicatorWidget()
+            : _buildBody(_doctorsModel!),
+      ),
     );
   }
 
@@ -182,7 +190,72 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
     );
   }
 
+  /// Resolve clinic_id for booking. Priority:
+  ///   1. Doctor row's clinic_id (set when fetched from v_doctors)
+  ///   2. Build-time VITE_CLINIC_ID (single-clinic deployments)
+  ///   3. First of VITE_CLINIC_IDS (multi-clinic allow-list)
+  ///   4. Empty string — backend will reject with a clear error
+  String _resolveClinicIdForBooking() {
+    final docClinic = _doctorsModel?.clinicId;
+    if (docClinic != null && docClinic > 0) return docClinic.toString();
+    final defId = ClinicConfig.defaultClinicId;
+    if (defId != null) return defId.toString();
+    if (ClinicConfig.allowedClinicIds.isNotEmpty) {
+      return ClinicConfig.allowedClinicIds.first.toString();
+    }
+    return "";
+  }
+
+  /// Returns the asset path for the gender-based fallback avatar, or null
+  /// if the model has no usable gender. The user adds these PNGs to
+  /// assets/icons/ — declared in pubspec.yaml.
+  String? _doctorAvatarAsset() {
+    final g = (_doctorsModel?.gender ?? '').trim().toLowerCase();
+    if (g == 'male' || g == 'm' || g == 'masculino') {
+      return 'assets/icons/doctor_male.png';
+    }
+    if (g == 'female' || g == 'f' || g == 'femenino') {
+      return 'assets/icons/doctor_female.png';
+    }
+    return null;
+  }
+
+  /// Compact circular avatar. Order: server image → gender asset → person icon.
+  Widget _buildDoctorAvatar(double size) {
+    final img = _doctorsModel?.image;
+    if (img != null && img.isNotEmpty) {
+      return ClipOval(
+        child: SizedBox(
+          height: size,
+          width: size,
+          child: ImageBoxFillWidget(
+            imageUrl: "${ApiContents.imageUrl}/$img",
+            boxFit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+    final asset = _doctorAvatarAsset();
+    if (asset != null) {
+      return ClipOval(
+        child: Image.asset(
+          asset,
+          height: size,
+          width: size,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    return CircleAvatar(
+      backgroundColor: Colors.white,
+      radius: size / 2,
+      child: Icon(Icons.person, size: size * 0.55, color: Colors.grey),
+    );
+  }
+
   Widget _buildProfileSection() {
+    final _img = _doctorsModel?.image;
+    debugPrint("DoctorDetailPage image ${(_img == null || _img.isEmpty) ? '(none)' : '${ApiContents.imageUrl}/$_img'}");
     return Card(
       color: ColorResources.cardBgColor,
       elevation: .1,
@@ -199,41 +272,23 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
                   flex: 2,
                   child: Stack(
                     children: [
-                      _doctorsModel!.image == null || _doctorsModel!.image == ""
-                          ? const CircleAvatar(
-                        backgroundColor: Colors.white,
-                        radius: 30,
-                        child: Icon(Icons.person, size: 40),
-                      )
-                          : ClipOval(
-                        child: SizedBox(
-                          height: 80,
-                          width: 80,
-                          child: CircleAvatar(
-                            child: ImageBoxFillWidget(
-                              imageUrl:
-                              "${ApiContents.imageUrl}/${_doctorsModel!.image}",
-                              boxFit: BoxFit.fill,
-                            ),
-                          ),
-                        ),
-                      ),
+                      _buildDoctorAvatar(50),
                       const Positioned(
-                        top: 5,
+                        top: 2,
                         right: 0,
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
-                          radius: 8,
+                          radius: 6,
                           child: CircleAvatar(
                             backgroundColor: Colors.green,
-                            radius: 6,
+                            radius: 4,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 14),
                 Flexible(
                   flex: 6,
                   child: Column(
@@ -393,7 +448,7 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
               borderRadius: BorderRadius.circular(10.0),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -650,16 +705,10 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
                 onPressed: _doctorsModel?.stopBooking == 1 || stopBooking
                     ? null
                     : () {
+                  // Patient defaults to the logged-in user. The patient card
+                  // exposes a "Reservar para familiar" action for switching.
                   if (_selectedAppointmentType == "3") {
-                    if (selectedFamilyMemberModel != null) {
-                      openAppointmentBox();
-                    } else {
-                      if (familyModelList.isEmpty) {
-                        _openBottomSheetAddPatient();
-                      } else {
-                        _openBottomSheetPatient();
-                      }
-                    }
+                    openAppointmentBox();
                   } else {
                     if (_selectedDate == "" || _setTime == "") {
                       _timeSlotsController.getData(
@@ -678,16 +727,8 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
                       );
                       _openBottomSheet();
                       return;
-                    } else if (_selectedDate != "" && _setTime != "") {
-                      if (selectedFamilyMemberModel != null) {
-                        openAppointmentBox();
-                      } else {
-                        if (familyModelList.isEmpty) {
-                          _openBottomSheetAddPatient();
-                        } else {
-                          _openBottomSheetPatient();
-                        }
-                      }
+                    } else {
+                      openAppointmentBox();
                     }
                   }
                 },
@@ -700,7 +741,8 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
     );
   }
 
-  void _openBottomSheetPatient() {
+  void _openBottomSheetSelectPatient() {
+    String query = '';
     showModalBottomSheet(
       backgroundColor: ColorResources.bgColor,
       isScrollControlled: true,
@@ -711,123 +753,187 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, setStateModal) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.9,
-              decoration: const BoxDecoration(
-                color: ColorResources.bgColor,
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(20.0),
-                  topLeft: Radius.circular(20.0),
-                ),
+            final lowered = query.trim().toLowerCase();
+            final List<FamilyMembersModel> filtered = lowered.isEmpty
+                ? familyModelList
+                : familyModelList.where((f) {
+                    final name =
+                        '${f.fName ?? ''} ${f.lName ?? ''}'.toLowerCase();
+                    final phone = (f.phone ?? '').toLowerCase();
+                    return name.contains(lowered) || phone.contains(lowered);
+                  }).toList();
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 10,
-                    right: 20,
-                    left: 20,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "add_select_family_member".tr,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Get.back();
-                            _openBottomSheetAddPatient();
-                          },
-                          child: Card(
-                            color: ColorResources.btnColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5.0),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.9,
+                decoration: const BoxDecoration(
+                  color: ColorResources.bgColor,
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(20.0),
+                    topLeft: Radius.circular(20.0),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 14, 12, 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "select_patient".tr,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                "add_new".tr,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Get.back();
+                              _openBottomSheetAddPatient();
+                            },
+                            child: Card(
+                              color: ColorResources.btnColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5.0),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.add,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "add_new".tr,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    top: 60,
-                    left: 5,
-                    right: 5,
-                    bottom: 0,
-                    child: ListView(
-                      children: [
-                        ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: familyModelList.length,
-                          itemBuilder: (context, index) {
-                            FamilyMembersModel familyModel =
-                            familyModelList[index];
-                            return Card(
-                              color: ColorResources.cardBgColor,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "search_family_member".tr,
+                          prefixIcon: const Icon(Icons.search, size: 20),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onChanged: (v) => setStateModal(() => query = v),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
+                        children: [
+                          // "Yo" chip — only show when there is no search filter
+                          // or the user's name matches the query.
+                          if (lowered.isEmpty ||
+                              _selfName.toLowerCase().contains(lowered))
+                            Card(
+                              color: selectedFamilyMemberModel == null
+                                  ? ColorResources.primaryColor.withValues(alpha: 0.1)
+                                  : ColorResources.cardBgColor,
                               elevation: .1,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5.0),
                               ),
                               child: ListTile(
                                 onTap: () {
-                                  selectedFamilyMemberModel = familyModel;
-                                  setState(() {});
+                                  setState(() {
+                                    selectedFamilyMemberModel = null;
+                                  });
                                   Get.back();
-
-                                  if (_selectedAppointmentType == "3") {
-                                    if (selectedFamilyMemberModel != null) {
-                                      openAppointmentBox();
-                                    }
-                                  } else {
-                                    if (_selectedDate == "" || _setTime == "") {
-                                      _timeSlotsController.getData(
-                                        widget.doctId ?? "",
-                                        DateTimeHelper.getDayName(
-                                          _todayDayTime.weekday,
+                                },
+                                leading: const Icon(
+                                  Icons.account_circle,
+                                  color: ColorResources.primaryColor,
+                                ),
+                                trailing: selectedFamilyMemberModel == null
+                                    ? const Icon(
+                                        Icons.check_circle,
+                                        color: ColorResources.primaryColor,
+                                      )
+                                    : null,
+                                title: Text(
+                                  "${"you".tr} - ${_selfName.isEmpty ? '-' : _selfName}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                subtitle: _selfPhone.isEmpty
+                                    ? null
+                                    : Text(
+                                        _selfPhone,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 13,
                                         ),
-                                        _selectedAppointmentType,
-                                      );
-                                      _bookedTimeSlotsController.getData(
-                                        widget.doctId ?? "",
-                                        DateTimeHelper.getYYYMMDDFormatDate(
-                                          _todayDayTime.toString(),
-                                        ),
-                                        getAppTypeName(
-                                          _selectedAppointmentType,
-                                        ),
-                                      );
-                                      _openBottomSheet();
-                                      return;
-                                    } else if (_selectedDate != "" &&
-                                        _setTime != "") {
-                                      if (selectedFamilyMemberModel != null) {
-                                        openAppointmentBox();
-                                      }
-                                    }
-                                  }
+                                      ),
+                              ),
+                            ),
+                          ...filtered.map((familyModel) {
+                            final bool isSelected =
+                                selectedFamilyMemberModel?.id == familyModel.id;
+                            return Card(
+                              color: isSelected
+                                  ? ColorResources.primaryColor.withValues(alpha: 0.1)
+                                  : ColorResources.cardBgColor,
+                              elevation: .1,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5.0),
+                              ),
+                              child: ListTile(
+                                onTap: () {
+                                  setState(() {
+                                    selectedFamilyMemberModel = familyModel;
+                                  });
+                                  Get.back();
                                 },
                                 leading: const Icon(Icons.person),
+                                trailing: isSelected
+                                    ? const Icon(
+                                        Icons.check_circle,
+                                        color: ColorResources.primaryColor,
+                                      )
+                                    : null,
                                 title: Text(
-                                  "${familyModel.fName} ${familyModel.lName}",
+                                  "${familyModel.fName ?? ''} ${familyModel.lName ?? ''}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 15,
                                   ),
                                 ),
                                 subtitle: Text(
-                                  "${familyModel.phone}",
+                                  familyModel.phone ?? '',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w400,
                                     fontSize: 13,
@@ -835,12 +941,26 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
                                 ),
                               ),
                             );
-                          },
-                        ),
-                      ],
+                          }),
+                          if (filtered.isEmpty && lowered.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Center(
+                                child: Text(
+                                  "no_family_member_found_des".tr,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.black54,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -1016,15 +1136,8 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
         setState(() {});
         Get.back();
 
-        if (selectedFamilyMemberModel != null) {
-          openAppointmentBox();
-        } else {
-          if (familyModelList.isEmpty) {
-            _openBottomSheetAddPatient();
-          } else {
-            _openBottomSheetPatient();
-          }
-        }
+        // Patient defaults to the logged-in user.
+        openAppointmentBox();
       },
       child: Card(
         color: DateTimeHelper.checkIfTimePassed(timeStart, _selectedDate) ||
@@ -1071,7 +1184,41 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
       DateTime.now().toString(),
     );
 
-    final resDoctors = await DoctorsService.getDataById(doctId: widget.doctId);
+    // Load logged-in identity from prefs so the patient card can default to
+    // "Yo (user name)" without an extra round-trip to /get_user.
+    final prefs = await SharedPreferences.getInstance();
+    _selfName =
+        (prefs.getString(SharedPreferencesConstants.name) ?? '').trim();
+    _selfPhone = prefs.getString(SharedPreferencesConstants.phone) ?? '';
+
+    // Prefer the clinic-aware endpoint so the doctor row carries per-clinic
+    // fees from user_clinics. Three sources, in priority:
+    //   1) clinicId from the route (set by the caller that already knows
+    //      which clinic the user is browsing — e.g. the expandable clinic
+    //      card on the home).
+    //   2) ClinicConfig.defaultClinicId (build-time / runtime override).
+    //   3) ClinicConfig.allowedClinicIds.first when there is exactly one.
+    // Falls back to the legacy /get_doctor/{id} only when none of the
+    // three resolves.
+    final routeClinicIdRaw = Get.parameters['clinicId'];
+    final routeClinicId = (routeClinicIdRaw == null ||
+            routeClinicIdRaw.isEmpty ||
+            routeClinicIdRaw == 'null')
+        ? null
+        : int.tryParse(routeClinicIdRaw);
+    final clinicCtx = routeClinicId
+        ?? ClinicConfig.defaultClinicId
+        ?? (ClinicConfig.allowedClinicIds.length == 1
+            ? ClinicConfig.allowedClinicIds.first
+            : null);
+    DoctorsModel? resDoctors;
+    if (clinicCtx != null && (widget.doctId ?? '').isNotEmpty) {
+      resDoctors = await DoctorsService.getDataByClinicAndDoctorId(
+        clinicId: clinicCtx.toString(),
+        doctId: widget.doctId!,
+      );
+    }
+    resDoctors ??= await DoctorsService.getDataById(doctId: widget.doctId);
     if (resDoctors != null) {
       _doctorsModel = resDoctors;
 
@@ -1088,15 +1235,18 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
         familyModelList = familyMemberList;
       }
 
-      clinicVisitFee = _doctorsModel?.opdFee ?? 0;
-      videoFee = _doctorsModel?.videoFee ?? 0;
-      emergencyFee = _doctorsModel?.emgFee ?? 0;
-
-      final userRes = await UserService.getDataById();
-      if (userRes != null) {
-        userModel = userRes;
-        email = userRes.email ?? "";
-      }
+      // Prefer per-clinic fee (user_clinics) over per-doctor default. The
+      // user_clinic_* fields are only present when the row came from
+      // /get_clinic_doctors; the legacy endpoint leaves them null.
+      clinicVisitFee = _doctorsModel?.userClinicOpdFee
+          ?? _doctorsModel?.opdFee
+          ?? 0;
+      videoFee = _doctorsModel?.userClinicVideoFee
+          ?? _doctorsModel?.videoFee
+          ?? 0;
+      emergencyFee = _doctorsModel?.userClinicEmgFee
+          ?? _doctorsModel?.emgFee
+          ?? 0;
 
       if (_doctorsModel?.clinicStopBooking == 1) {
         stopBooking = true;
@@ -1134,12 +1284,14 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
     final familyList = await FamilyMembersService.getData();
     if (familyList != null && familyList.isNotEmpty) {
       familyModelList = familyList;
-      selectedFamilyMemberModel = familyList[0];
+      // Right after registering a new family member, auto-select the most
+      // recently created one (highest id) so the booking continues for that
+      // patient — that's why the user took the trouble to add them.
+      familyList.sort((a, b) => (b.id ?? 0).compareTo(a.id ?? 0));
+      selectedFamilyMemberModel = familyList.first;
 
       if (_selectedAppointmentType == "3") {
-        if (selectedFamilyMemberModel != null) {
-          openAppointmentBox();
-        }
+        openAppointmentBox();
       } else {
         if (_selectedDate == "" || _setTime == "") {
           _timeSlotsController.getData(
@@ -1154,10 +1306,8 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
           );
           _openBottomSheet();
           return;
-        } else if (_selectedDate != "" && _setTime != "") {
-          if (selectedFamilyMemberModel != null) {
-            openAppointmentBox();
-          }
+        } else {
+          openAppointmentBox();
         }
       }
     }
@@ -1185,67 +1335,73 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
   }
 
   Widget _buildFamilyMemberCard() {
-    return Card(
-      color: ColorResources.cardBgColor,
-      elevation: .1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(5.0),
-      ),
-      child: ListTile(
-        leading: const Icon(Icons.person, size: 20),
-        trailing: GestureDetector(
-          onTap: () {
-            if (familyModelList.isEmpty) {
-              _openBottomSheetAddPatient();
-            } else {
-              _openBottomSheetPatient();
-            }
-          },
-          child: Container(
-            height: 25,
-            width: 25,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: ColorResources.btnColor,
+    final bool isSelf = selectedFamilyMemberModel == null;
+    final String displayName = isSelf
+        ? "${_selfName.isEmpty ? '-' : _selfName} (${"you".tr})"
+        : "${selectedFamilyMemberModel?.fName ?? "--"} ${selectedFamilyMemberModel?.lName ?? "--"}";
+    final String displayPhone = isSelf
+        ? _selfPhone
+        : (selectedFamilyMemberModel?.phone ?? "--");
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Card(
+          color: ColorResources.cardBgColor,
+          elevation: .1,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          child: ListTile(
+            leading: const Icon(Icons.person, size: 20),
+            title: Text(
+              "patient".tr,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            child: const Icon(
-              Icons.add,
-              size: 15,
-              color: Colors.white,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 3),
+                Text(
+                  displayName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w400,
+                    fontSize: 14,
+                  ),
+                ),
+                if (displayPhone.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    displayPhone,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
-        title: Text(
-          "patient".tr,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: TextButton.icon(
+            onPressed: _openBottomSheetSelectPatient,
+            icon: const Icon(Icons.person_search, size: 18),
+            label: Text(
+              isSelf ? "book_for_family_member".tr : "change_patient".tr,
+              style: const TextStyle(fontSize: 13),
+            ),
+            style: TextButton.styleFrom(
+              foregroundColor: ColorResources.primaryColor,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            ),
           ),
         ),
-        subtitle: selectedFamilyMemberModel == null
-            ? null
-            : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 3),
-            Text(
-              "${selectedFamilyMemberModel?.fName ?? "--"} ${selectedFamilyMemberModel?.lName ?? "--"}",
-              style: const TextStyle(
-                fontWeight: FontWeight.w400,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              selectedFamilyMemberModel?.phone ?? "--",
-              style: const TextStyle(
-                fontWeight: FontWeight.w400,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
@@ -1520,7 +1676,9 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
                             ),
                             Flexible(
                               child: Text(
-                                "${selectedFamilyMemberModel?.fName ?? "--"} ${selectedFamilyMemberModel?.lName ?? "--"}",
+                                selectedFamilyMemberModel == null
+                                    ? "${_selfName.isEmpty ? '-' : _selfName} (${"you".tr})"
+                                    : "${selectedFamilyMemberModel?.fName ?? "--"} ${selectedFamilyMemberModel?.lName ?? "--"}",
                                 textAlign: TextAlign.end,
                                 style: const TextStyle(
                                   fontSize: 14,
@@ -1886,6 +2044,7 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
           : _setTime,
       durationMinutes: durationMinutes.toString(),
       doctId: widget.doctId ?? "",
+      clinicId: _resolveClinicIdForBooking(),
       deptId: _doctorsModel?.deptId?.toString() ?? "",
       type: getAppTypeName(_selectedAppointmentType),
       meetingId: "",
@@ -1908,31 +2067,40 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
     if (res != null) {
       IToastMsg.showMessage("success".tr);
 
-      final int? appointmentId = _readCreatedAppointmentId(res);
-
       setState(() {
         _isLoading = false;
       });
 
-      if (appointmentId != null) {
-        Get.offNamedUntil(
-          RouteHelper.getAppointmentDetailsPageRoute(
-            appId: appointmentId.toString(),
-          ),
-          ModalRoute.withName('/HomePage'),
-        );
-        return;
-      }
-
-      Get.offNamedUntil(
-        RouteHelper.getMyBookingPageRoute(),
-        ModalRoute.withName('/HomePage'),
-      );
+      _navigateAfterBookingSuccess();
     } else {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  /// Decides where to send the user after a successful booking. In the
+  /// appointment-only flow we redirect to the home page's "Mis citas" tab
+  /// (with the today / future sub-tab pre-selected based on the booking
+  /// date). Outside that flow, we keep the legacy behaviour of pushing
+  /// MyBookingPage on top of the home page.
+  void _navigateAfterBookingSuccess() {
+    if (ClinicConfig.showAppointmentOnly) {
+      final bool isToday = _selectedAppointmentType == "3" ||
+          _selectedDate == DateTimeHelper.getTodayDateInString();
+      Get.offAllNamed(
+        RouteHelper.getHomePageRoute(),
+        arguments: {
+          'tab': 'appointments',
+          'subTab': isToday ? 'today' : 'future',
+        },
+      );
+      return;
+    }
+    Get.offNamedUntil(
+      RouteHelper.getMyBookingPageRoute(),
+      ModalRoute.withName('/HomePage'),
+    );
   }
 
   Future<void> handleAppointmentPaymentWithBancard() async {
@@ -1969,6 +2137,7 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
             : _setTime,
         durationMinutes: durationMinutes.toString(),
         doctId: widget.doctId ?? "",
+        clinicId: _resolveClinicIdForBooking(),
         deptId: _doctorsModel?.deptId?.toString() ?? "",
         type: getAppTypeName(_selectedAppointmentType),
         meetingId: "",
@@ -2060,8 +2229,9 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
             () => MedicareClientPaymentGatewayPage(),
         arguments: {
           'appointment_id': appointmentId,
-          'patient_name':
-          '${selectedFamilyMemberModel?.fName ?? "--"} ${selectedFamilyMemberModel?.lName ?? "--"}',
+          'patient_name': selectedFamilyMemberModel == null
+              ? (_selfName.isEmpty ? '-' : _selfName)
+              : '${selectedFamilyMemberModel?.fName ?? "--"} ${selectedFamilyMemberModel?.lName ?? "--"}',
           'payment_amount': totalAmount,
           'checkout_page_url': checkoutPageUrl,
           'payment_url': paymentUrl,
@@ -2160,12 +2330,19 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
   }
 
   Future<void> _handleGatewayResult(dynamic result, int appointmentId) async {
+    // Push AppointmentDetailsPage on top of the current page (DoctorsDetailsPage)
+    // instead of replacing the stack. The booking-only flow does
+    // Get.offAllNamed(DoctorsDetailsPage) on app launch, so '/HomePage' is no
+    // longer in the stack — using Get.offNamedUntil('/HomePage') would strip
+    // the doctor page and leave AppointmentDetailsPage stranded with no
+    // back target. With Get.toNamed the user can pop back to the doctor
+    // page, and another back triggers AppointmentOnlyBackGuard's logout
+    // dialog, which is the entry-point behaviour we want.
     if (result is! Map) {
-      Get.offNamedUntil(
+      Get.toNamed(
         RouteHelper.getAppointmentDetailsPageRoute(
           appId: appointmentId.toString(),
         ),
-        ModalRoute.withName('/HomePage'),
       );
       return;
     }
@@ -2175,42 +2352,34 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
 
     if (status == 'success') {
       IToastMsg.showMessage("appointment_booked_successfully".tr);
-      Get.offNamedUntil(
-        RouteHelper.getAppointmentDetailsPageRoute(
-          appId: appointmentId.toString(),
-        ),
-        ModalRoute.withName('/HomePage'),
-      );
+      _navigateAfterBookingSuccess();
       return;
     }
 
     if (status == 'canceled') {
       IToastMsg.showMessage("Pago cancelado. La cita quedó pendiente.");
-      Get.offNamedUntil(
+      Get.toNamed(
         RouteHelper.getAppointmentDetailsPageRoute(
           appId: appointmentId.toString(),
         ),
-        ModalRoute.withName('/HomePage'),
       );
       return;
     }
 
     if (status == 'failed' || status == 'pending') {
       IToastMsg.showMessage("La cita quedó pendiente de pago.");
-      Get.offNamedUntil(
+      Get.toNamed(
         RouteHelper.getAppointmentDetailsPageRoute(
           appId: appointmentId.toString(),
         ),
-        ModalRoute.withName('/HomePage'),
       );
       return;
     }
 
-    Get.offNamedUntil(
+    Get.toNamed(
       RouteHelper.getAppointmentDetailsPageRoute(
         appId: appointmentId.toString(),
       ),
-      ModalRoute.withName('/HomePage'),
     );
   }
 
@@ -2485,11 +2654,15 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
 
   Widget _buildClinicInfo() {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
+        final cid =
+            _doctorsModel?.clinicId ?? ClinicConfig.defaultClinicId;
+        if (cid == null || cid <= 0) {
+          return;
+        }
+        await ClinicConfig.setActiveClinicId(cid);
         Get.toNamed(
-          RouteHelper.getClinicPageRoute(
-            clinicId: _doctorsModel?.clinicId.toString(),
-          ),
+          RouteHelper.getClinicPageRoute(clinicId: cid.toString()),
         );
       },
       child: Card(

@@ -16,10 +16,10 @@ class DateTimeHelper {
 
   }
   static  getDataFormatWithTime(String? createdAt) {
-    String dateString="";
-    final newData=DateTime.parse(createdAt??"");
-    dateString="${newData.day} ${getMonthName(newData.month)}, ${newData.year} ${formattedTime(newData)}";
-    return dateString;
+    if (createdAt == null || createdAt.isEmpty) return "";
+    final newData = DateTime.tryParse(createdAt);
+    if (newData == null) return "";
+    return "${newData.day} ${getMonthName(newData.month)}, ${newData.year} ${formattedTime(newData)}";
   }
   static String formattedTime(DateTime dateTime) {
     return DateFormat('hh:mm a').format(dateTime);
@@ -39,10 +39,10 @@ class DateTimeHelper {
     return '$hour:${minute.toString().padLeft(2, '0')} $period';
   }
   static String getDataFormat(String? createdAt) {
-    String dateString="";
-    final newData=DateTime.parse(createdAt??"");
-    dateString="${newData.day} ${getMonthName(newData.month)}, ${newData.year}";
-    return dateString;
+    if (createdAt == null || createdAt.isEmpty) return "";
+    final newData = DateTime.tryParse(createdAt);
+    if (newData == null) return "";
+    return "${newData.day} ${getMonthName(newData.month)}, ${newData.year}";
   }
   static String  getYYYMMDDFormatDate(String dateString ){
     DateTime parsedDate = DateFormat('yyyy-MM-dd').parse(dateString);

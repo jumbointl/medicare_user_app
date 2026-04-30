@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:udemy_core/udemy_core.dart' show SafeBottomBar;
 import 'package:url_launcher/url_launcher.dart';
 import '../controller/clinic_controller.dart';
 import '../controller/pathologist_controller.dart';
@@ -22,6 +23,7 @@ import '../model/city_model.dart';
 import '../model/department_model.dart';
 import '../model/doctors_model.dart';
 import '../pages/auth/login_page.dart';
+import '../pages/clinic_page.dart';
 import '../pages/doctors_list_page.dart';
 import '../pages/my_booking_page.dart';
 import '../pages/wallet_page.dart';
@@ -32,6 +34,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:star_rating/star_rating.dart';
 import '../controller/user_controller.dart';
 import '../utilities/api_content.dart';
+import '../utilities/clinic_config.dart';
 import '../utilities/colors_constant.dart';
 import '../utilities/image_constants.dart';
 import '../widget/carousel_widget.dart';
@@ -265,7 +268,7 @@ class _HomePageState extends State<HomePage> {
           key: _key,
           drawer:_isLoading?null:IDrawerWidget().buildDrawerWidget(userController,_notificationDotController,enableAiAssistant),
         backgroundColor: ColorResources.bgColor,
-          bottomNavigationBar:_isLoading?null: BottomAppBar(
+          bottomNavigationBar:_isLoading?null: SafeBottomBar(child: BottomAppBar(
             height: 80,
             shape: const CircularNotchedRectangle(),
             notchMargin: 8.0,
@@ -380,7 +383,7 @@ class _HomePageState extends State<HomePage> {
 
               ],
             ),
-          ),
+          )),
           floatingActionButtonLocation:_isLoading?null:
           FloatingActionButtonLocation.centerDocked,
           floatingActionButton: MediaQuery
@@ -433,16 +436,17 @@ class _HomePageState extends State<HomePage> {
       padding:const  EdgeInsets.all(0),
       children: [
         _buildProfileSection(),
+
         bannerImageList.isEmpty?Container():   CarouselSliderWidget(
           imagesUrl: bannerImageList,
         ),
        // _buildHeaderSection(),
-        enableAiAssistant? aiDoctorSuggestionCard():Container(),
+        (enableAiAssistant && ClinicConfig.showAiBanner) ? aiDoctorSuggestionCard() : Container(),
         _buildDepartment(),
-        _buildDoctor(),
-        _buildClinic(),
-        _buildPathologistLab(),
-          blogList.isEmpty?Container():  _buildBlogList(),//       checkIsShowBox()?_buildContactCard():Container(),\
+        _buildClinicSection(),
+        if (!ClinicConfig.hasClinicFilter) _buildDoctor(),
+        if (ClinicConfig.showLab) _buildPathologistLab(),
+        if (ClinicConfig.showBlog && blogList.isNotEmpty) _buildBlogList(),
         _buildCardBox(),
         const SizedBox(height: 100)
       ],
@@ -849,7 +853,8 @@ class _HomePageState extends State<HomePage> {
   }
   _buildClinicCard(ClinicModel clinicModel){
     return ListTile(
-      onTap: (){
+      onTap: () async {
+        await ClinicConfig.setActiveClinicId(clinicModel.id);
         Get.toNamed(RouteHelper.getClinicPageRoute(clinicId: clinicModel.id.toString()));
       },
       title: Text(clinicModel.title??"",
@@ -1055,22 +1060,32 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  _buildClinic() {
-    return   Obx(() {
-      if (!_clinicController.isError.value) { // if no any error
-        if (_clinicController.isLoading.value) {
-          return const IVerticalListLongLoadingWidget();
-        } else if (_clinicController.dataList.isEmpty) {
-          return  Container();
-        } else {
-          return
-         _buildClinicList(_clinicController.dataList);
-        }
-      }else {
-        return Container();
-      } //Error svg
+  /// Mirrors `medicare-user-web` Components/Clinics.jsx single-clinic logic:
+  /// when exactly one clinic is in scope (env-configured or returned), embed
+  /// the full ClinicPage (clinic detail + doctors below) instead of a carousel.
+  Widget _buildClinicSection() {
+    final ids = ClinicConfig.allowedClinicIds;
+    final defaultId = ClinicConfig.defaultClinicId;
+    if (ids.length == 1) {
+      return ClinicPage(clinicId: ids.first.toString(), showAppBar: false);
     }
-    );
+    if (ids.isEmpty && defaultId != null) {
+      return ClinicPage(clinicId: defaultId.toString(), showAppBar: false);
+    }
+    return Obx(() {
+      if (_clinicController.isError.value) return Container();
+      if (_clinicController.isLoading.value) {
+        return const IVerticalListLongLoadingWidget();
+      }
+      if (_clinicController.dataList.isEmpty) return Container();
+      if (_clinicController.dataList.length == 1) {
+        final id = _clinicController.dataList.first.id;
+        if (id != null) {
+          return ClinicPage(clinicId: id.toString(), showAppBar: false);
+        }
+      }
+      return _buildClinicList(_clinicController.dataList);
+    });
   }
   _buildPathologistLab() {
     return   Obx(() {
@@ -1310,11 +1325,13 @@ class _HomePageState extends State<HomePage> {
       _isLoading=false;
     });
 
-    final resBlogPost=await BlogPostService.getData(start: 0, end: 5, isFeatured: true);
-    if(resBlogPost!=null){
-      setState(() {
-        blogList=resBlogPost;
-      });
+    if (ClinicConfig.showBlog) {
+      final resBlogPost=await BlogPostService.getData(start: 0, end: 5, isFeatured: true);
+      if(resBlogPost!=null){
+        setState(() {
+          blogList=resBlogPost;
+        });
+      }
     }
   }
   _openDialogSettingBox(bool isCancel) {
@@ -1625,6 +1642,7 @@ class _HomePageState extends State<HomePage> {
       SharedPreferences sharedPreferences=await SharedPreferences.getInstance();
       sharedPreferences.setString("city_id", cityId??"");
       sharedPreferences.setString("city", cityName??"");
+      _persistActiveClinicId(sharedPreferences, fromCity: res['clinic_id']);
       _doctorsController.getData("",cityId.toString());
       _clinicController.getData("0","5",cityId.toString());
       _pathologistController.getData("0","5",cityId.toString());
@@ -1715,9 +1733,34 @@ class _HomePageState extends State<HomePage> {
 
     sharedPreferences.setString("city_id", cityId ?? "");
     sharedPreferences.setString("city", cityName ?? "");
+    _persistActiveClinicId(sharedPreferences, fromCity: res['clinic_id']);
 
     getAndSetData();
   }
+
+  void _persistActiveClinicId(
+    SharedPreferences prefs, {
+    Object? fromCity,
+  }) {
+    if (!ClinicConfig.hasClinicFilter) return;
+    int? resolved;
+    if (fromCity is int) {
+      resolved = fromCity;
+    } else if (fromCity is String) {
+      resolved = int.tryParse(fromCity);
+    }
+    resolved ??= ClinicConfig.defaultClinicId;
+    if (resolved == null && ClinicConfig.allowedClinicIds.isNotEmpty) {
+      resolved = ClinicConfig.allowedClinicIds.first;
+    }
+    if (resolved != null) {
+      prefs.setString(
+        SharedPreferencesConstants.clinicId,
+        resolved.toString(),
+      );
+    }
+  }
+
   _openBottomSheetSearchCity() {
     return
       showModalBottomSheet(
@@ -1790,13 +1833,14 @@ class _HomePageState extends State<HomePage> {
                                             SharedPreferences sharedPreferences=await SharedPreferences.getInstance();
                                             sharedPreferences.setString("city_id", cityId??"");
                                             sharedPreferences.setString("city", cityName??"");
+                                            _persistActiveClinicId(sharedPreferences, fromCity: cityMode.clinicId);
                                             _doctorsController.getData("",cityId.toString());
                                             _clinicController.getData("0","5",cityId.toString());
                                             _pathologistController.getData("0","5",cityId.toString());
 
                                             this.setState((){});
                                           },
-                                          title: Text("${cityMode.title},${cityMode.stateTitle}",
+                                          title: Text("city_state".trArgs([cityMode.title??"", cityMode.stateTitle??""]),
                                             style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.w500
@@ -1859,7 +1903,7 @@ class _HomePageState extends State<HomePage> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children:[
-                  Text('Blog Post',
+                  Text('blog_post'.tr,
                     style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14

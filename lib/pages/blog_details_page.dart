@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:get/get.dart';
 import '../model/blog_post_model.dart';
 import '../services/blog_post_service.dart';
 import '../utilities/colors_constant.dart';
@@ -127,7 +128,7 @@ class _BlogDetailsPageState extends State<BlogDetailsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Author's",style: TextStyle(
+          Text("authors".tr,style: TextStyle(
               color: ColorResources.primaryColor,
               fontSize: 16,fontWeight: FontWeight.w500),),
           ListView.builder(
@@ -176,7 +177,7 @@ class _BlogDetailsPageState extends State<BlogDetailsPage> {
                         fontSize: 12
                     ),
                   ),
-                  Text("${authorDetails['f_name']} ${authorDetails['l_name']} (${authorDetails['role']})",
+                  Text("name_with_role".trArgs(["${authorDetails['f_name']??""}", "${authorDetails['l_name']??""}", "${authorDetails['role']??""}"]),
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 14

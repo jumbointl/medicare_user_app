@@ -25,6 +25,7 @@ import '../model/configuration_model.dart';
 import '../model/invoice_model.dart';
 import '../model/prescription_model.dart';
 import '../pages/patient_file_page.dart';
+import '../pages/reschedule_appointment_page.dart';
 import '../services/SocketService.dart';
 import '../services/appointment_cancellation_service.dart';
 import '../services/appointment_checkin_service.dart';
@@ -517,6 +518,11 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             ? _buildReviewBox()
             : Container(),
         const SizedBox(height: 3),
+        appointmentModel?.status == "Visited" ||
+            appointmentModel?.status == "Completed"
+            ? Container()
+            : _buildRescheduleButton(),
+        const SizedBox(height: 4),
         appointmentModel?.status == "Visited" ||
             appointmentModel?.status == "Completed"
             ? Container()
@@ -1571,6 +1577,71 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
               color: ColorResources.secondaryFontColor,
               fontWeight: FontWeight.w400,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRescheduleButton() {
+    if (appointmentModel == null) return const SizedBox.shrink();
+    final status = appointmentModel?.status;
+    if (['Cancelled', 'Rejected', 'Visited', 'Completed'].contains(status)) {
+      return const SizedBox.shrink();
+    }
+
+    DateTime startAt = DateTime.now();
+    try {
+      final dateStr = appointmentModel?.date;
+      final slot = appointmentModel?.timeSlot;
+      if (dateStr != null && slot != null) {
+        final m = RegExp(r'(\d{1,2}):(\d{2})').firstMatch(slot);
+        if (m != null) {
+          final base = DateTime.parse(dateStr);
+          startAt = DateTime(
+            base.year, base.month, base.day,
+            int.parse(m.group(1)!),
+            int.parse(m.group(2)!),
+          );
+        }
+      }
+    } catch (_) {}
+
+    return Card(
+      color: ColorResources.cardBgColor,
+      elevation: .1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(5.0),
+      ),
+      child: ListTile(
+        onTap: () async {
+          final result = await Get.to(
+            () => RescheduleAppointmentPage(
+              appointmentId: appointmentModel!.id.toString(),
+              appointmentStart: startAt,
+              appointmentType: appointmentModel?.type ?? '',
+              paymentStatus: appointmentModel?.paymentStatus,
+              doctor: null,
+            ),
+          );
+          if (result == true) await getAndSetData();
+        },
+        trailing: const Icon(
+          Icons.arrow_right,
+          color: ColorResources.btnColor,
+        ),
+        title: Text(
+          "reschedule".tr,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          "reschedule_subtitle".tr,
+          style: const TextStyle(
+            color: ColorResources.secondaryFontColor,
+            fontSize: 13,
           ),
         ),
       ),

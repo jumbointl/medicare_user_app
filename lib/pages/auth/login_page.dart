@@ -171,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                     _openBottomSheetLogin();
                   }
                 },
-                child: Text("Continue with phone".tr),
+                child: Text("continue_with_phone".tr),
               ),
             ],
           ),
@@ -420,7 +420,7 @@ class _LoginPageState extends State<LoginPage> {
                                 TextButton(onPressed: (){
                                   Get.back();
                                   _handeCancelBtn();
-                                }, child:   Text("Cancel".tr,
+                                }, child:   Text("cancel".tr,
                                 style:const TextStyle(
                                   fontWeight: FontWeight.w400,
                                   fontSize: 15
@@ -856,6 +856,14 @@ class _LoginPageState extends State<LoginPage> {
       (data['id'] ?? '').toString(),
     );
 
+    // Backend may return patient_id either populated (this user is also a
+    // patient) or null (admin/doctor accounts). Persist whatever we get so
+    // downstream screens can decide what to display.
+    await preferences.setString(
+      SharedPreferencesConstants.patientId,
+      (data['patient_id'] ?? '').toString(),
+    );
+
     await preferences.setString(
       SharedPreferencesConstants.name,
       "${data['f_name'] ?? ''} ${data['l_name'] ?? ''}".trim(),
@@ -872,7 +880,8 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     debugPrint(
-      "LOGIN SAVED UID = ${preferences.getString(SharedPreferencesConstants.uid)}",
+      'LOGIN SAVED uid="${preferences.getString(SharedPreferencesConstants.uid)}" '
+      'patient_id="${preferences.getString(SharedPreferencesConstants.patientId)}"',
     );
 
     UserController userController = Get.find(tag: "user");

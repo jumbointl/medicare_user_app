@@ -15,7 +15,7 @@ class LanguagePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Language'),
+        title: Text('language'.tr),
       ),
       body: FutureBuilder<List<LanguageModel>>(
         future: LanguageStorage.getLanguages(),

@@ -65,7 +65,33 @@ class UserService{
       "phone":phone,
     };
     final res=await PostService.postReq(loginPhoneUrl, body);
+    _logLoginResponse('phone', res);
     return res;
+  }
+
+  /// Dumps every key returned by the backend after a successful login so we
+  /// can confirm whether `patient_id` is included. Triggered from each login
+  /// helper so we cover phone-OTP and Google.
+  static void _logLoginResponse(String source, dynamic res) {
+    if (!kDebugMode) return;
+    debugPrint('====== LOGIN RESPONSE ($source) ======');
+    if (res == null) {
+      debugPrint('  (null)');
+      return;
+    }
+    if (res is Map) {
+      debugPrint('  top-level keys: ${res.keys.toList()}');
+      final data = res['data'];
+      if (data is Map) {
+        debugPrint('  data keys: ${data.keys.toList()}');
+        debugPrint('  data.patient_id = ${data['patient_id']}');
+        debugPrint('  data.id         = ${data['id']}');
+      } else {
+        debugPrint('  data: $data');
+      }
+    } else {
+      debugPrint('  $res');
+    }
   }
   static Future logOutUser()async{
     Map body={
@@ -153,6 +179,7 @@ class UserService{
         },
       );
 
+      _logLoginResponse('google', response);
       return response;
     } catch (e) {
       debugPrint("User loginWithGoogle error: $e");

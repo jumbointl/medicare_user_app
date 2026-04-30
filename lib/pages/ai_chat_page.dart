@@ -188,7 +188,7 @@ class _AiChatPageState extends State<AiChatPage> {
     return InkWell(
       onTap: (){
         if(doctor.userId!=null){
-          Get.toNamed(RouteHelper.getDoctorsDetailsPageRoute(doctId:doctor.userId.toString() ));
+          Get.toNamed(RouteHelper.getDoctorsDetailsPageRoute(doctId:doctor.id.toString() ));
         }
 
       },

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:udemy_core/udemy_core.dart';
 import 'package:medicare_user_app/helpers/currency_formatter_helper.dart';
 import 'package:medicare_user_app/services/lab_booking_service.dart';
 import 'package:medicare_user_app/services/pathologist_service.dart';
@@ -84,7 +85,7 @@ class _LabCartCheckOutPageState extends State<LabCartCheckOutPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(bottomNavigationBar:
-    _isLoading?null:stopBooking?
+    _isLoading?null:SafeBottomBar(child: stopBooking?
     Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -103,7 +104,7 @@ class _LabCartCheckOutPageState extends State<LabCartCheckOutPage> {
         ],
       ),
     )
-        :_buildBottomButton(),
+        :_buildBottomButton()),
         appBar: IAppBar.commonAppBar(title: "lab_test".tr),
       body: _isLoading?ILoadingIndicatorWidget():_buildCartList(),
     );
@@ -883,7 +884,7 @@ _buildBottomButton(){
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 3),
-            Text("${selectedFamilyMemberModel?.fName??"--"} ${selectedFamilyMemberModel?.lName??"--"}",
+            Text("full_name".trArgs([selectedFamilyMemberModel?.fName??"--", selectedFamilyMemberModel?.lName??"--"]),
               style: const TextStyle(
                   fontWeight: FontWeight.w400,
                   fontSize: 14
@@ -1158,7 +1159,7 @@ _buildBottomButton(){
                                               if(isOpenCart){openCartBox();}
                                             },
                                             leading:const  Icon(Icons.person),
-                                            title: Text("${familyModel.fName} ${familyModel.lName}",
+                                            title: Text("full_name".trArgs([familyModel.fName??"", familyModel.lName??""]),
                                               style: const TextStyle(
                                                   fontWeight: FontWeight.w500,
                                                   fontSize: 15

@@ -10,6 +10,7 @@ import 'languages/translation.dart';
 import 'theme/dark_theme.dart';
 import 'theme/light_theme.dart';
 import 'utilities/app_constans.dart';
+import 'utilities/clinic_config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,8 @@ Future<void> main() async {
 
   final languageController = Get.find<LanguageController>();
   await languageController.loadSavedLanguage();
+
+  await ClinicConfig.loadFromPrefs();
 
   runApp(const MyApp());
 }

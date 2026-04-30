@@ -11,12 +11,14 @@ import '../services/clinic_service.dart';
 import '../services/doctor_service.dart';
 import '../services/testimonial_service.dart';
 import '../widget/app_bar_widget.dart';
+import '../widget/appointment_only_back_guard.dart';
 import '../widget/loading_Indicator_widget.dart';
 
 import '../helpers/route_helper.dart';
 import '../model/doctors_model.dart';
 import '../services/configuration_service.dart';
 import '../utilities/api_content.dart';
+import '../utilities/clinic_config.dart';
 import '../utilities/colors_constant.dart';
 import '../utilities/image_constants.dart';
 import '../utilities/sharedpreference_constants.dart';
@@ -29,7 +31,8 @@ import 'auth/login_page.dart';
 
 class ClinicPage extends StatefulWidget {
   final String? clinicId;
-  const ClinicPage({super.key,this.clinicId});
+  final bool showAppBar;
+  const ClinicPage({super.key,this.clinicId,this.showAppBar=true});
 
   @override
   State<ClinicPage> createState() => _ClinicPageState();
@@ -46,15 +49,32 @@ class _ClinicPageState extends State<ClinicPage> {
     @override
   void initState() {
     // TODO: implement initState
-  getAndSetData();
+    // Persist whichever clinic the user is currently viewing as the runtime
+    // clinic_id. Catches every path into ClinicPage (list tap, home card,
+    // doctor-details clinic info, deep links, embedded mode). Downstream
+    // services pick this up via ClinicConfig.applyTo() / defaultClinicId.
+    final cid = int.tryParse(widget.clinicId ?? '');
+    if (cid != null && cid > 0) {
+      ClinicConfig.setActiveClinicId(cid);
+    }
+    getAndSetData();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: IAppBar.commonAppBar(title: clinicModel?.title??"clinic".tr),
-      body:_isLoading||clinicModel==null?ILoadingIndicatorWidget():_buildBody()
+    final body = _isLoading || clinicModel == null
+        ? ILoadingIndicatorWidget()
+        : _buildBody();
+    if (!widget.showAppBar) {
+      return AppointmentOnlyBackGuard(child: body);
+    }
+    return AppointmentOnlyBackGuard(
+      child: Scaffold(
+        appBar: IAppBar.commonAppBar(title: clinicModel?.title ?? "clinic".tr),
+        drawer: appointmentOnlyDrawer(),
+        body: body,
+      ),
     );
   }
 
@@ -66,7 +86,7 @@ final res=await ClinicService.getDataById(clinicId: widget.clinicId);
 if(res!=null){
   clinicModel=res;
 }
-if(clinicModel!.clinicImages!=null){
+if(clinicModel?.clinicImages!=null){
   for(int i =0;i<clinicModel!.clinicImages!.length;i++){
     clinicImages.add("${ApiContents.imageUrl}/${clinicModel!.clinicImages?[i]['image']??""}");
   }
@@ -97,8 +117,11 @@ if(clinicModel!.clinicImages!=null){
   }
 
   _buildBody() {
+  final embedded = !widget.showAppBar;
   return ListView(
-    controller: _scrollController,
+    controller: embedded ? null : _scrollController,
+    shrinkWrap: embedded,
+    physics: embedded ? const NeverScrollableScrollPhysics() : null,
     padding: EdgeInsets.all(5),
     children: [
     buildImageSection(),
@@ -359,7 +382,7 @@ if(clinicModel!.clinicImages!=null){
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             Flexible(
-                                              child: Text("${doctorsModel.fName??"--"} ${doctorsModel.lName??"--"}",
+                                              child: Text("full_name".trArgs([doctorsModel.fName??"--", doctorsModel.lName??"--"]),
                                                 style: const TextStyle(
                                                     fontWeight: FontWeight.w600,
                                                     fontSize: 16

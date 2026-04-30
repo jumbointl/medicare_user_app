@@ -230,7 +230,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                       Flexible(
-                                        child: Text("${doctorsModel.fName??"--"} ${doctorsModel.lName??"--"}",
+                                        child: Text("full_name".trArgs([doctorsModel.fName??"--", doctorsModel.lName??"--"]),
                                         style: const TextStyle(
                                             fontWeight: FontWeight.w600,
                                             fontSize: 16
@@ -358,6 +358,8 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                                 final loggedIn = preferences.getBool(SharedPreferencesConstants.login) ??false;
                                 final userId= preferences.getString(SharedPreferencesConstants.uid);
                                 if(loggedIn&&userId!=""&&userId!=null){
+                                  debugPrint("userId $userId");
+                                  debugPrint("Get to getDoctorsDetailsPageRoute doctId ${doctorsModel.id}");
                                   Get.toNamed(RouteHelper.getDoctorsDetailsPageRoute(doctId:doctorsModel.id.toString() ));
                                 }else{
                                   Get.to(()=>LoginPage(onSuccessLogin:  (){      Get.toNamed(RouteHelper.getDoctorsDetailsPageRoute(doctId:doctorsModel.id.toString() ));}));
@@ -601,7 +603,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                              child:  filteredCities.isEmpty?
                              Padding(
                                padding: const EdgeInsets.all(8.0),
-                               child:  Text("No Data Found!".tr),
+                               child:  Text("no_data_found!".tr),
                              ): ListView.builder(
                                controller: _bottomSheetScrollController,
                                shrinkWrap: true,
@@ -623,7 +625,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                                          _searchTextDoctorsController.clear();
                                          getDoctorsData();
                                        },
-                                       title: Text("${cityMode.title},${cityMode.stateTitle}",
+                                       title: Text("city_state".trArgs([cityMode.title??"", cityMode.stateTitle??""]),
                                      style: TextStyle(
                                          fontSize: 13,
                                          fontWeight: FontWeight.w500

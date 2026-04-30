@@ -314,7 +314,7 @@ class _PathologistListPageState extends State<PathologistListPage> {
                                             _searchTextDoctorsController.clear();
                                             getClinicData();
                                           },
-                                          title: Text("${cityMode.title},${cityMode.stateTitle}",
+                                          title: Text("city_state".trArgs([cityMode.title??"", cityMode.stateTitle??""]),
                                             style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.w500

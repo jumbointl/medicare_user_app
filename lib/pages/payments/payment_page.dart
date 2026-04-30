@@ -63,7 +63,7 @@ class _PaymentWebViewState extends State<PaymentWebView> {
         iconTheme: IconThemeData(color: Colors.white),
           elevation: 0,
           backgroundColor:ColorResources.appBarColor,
-          title:  Text('Payment',
+          title:  Text('payment'.tr,
             style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,

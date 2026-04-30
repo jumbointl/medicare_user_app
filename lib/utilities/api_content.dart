@@ -6,21 +6,29 @@ class ApiContents{
   //API_BASE_URL
   static const baseApiUrl="$webApiUrl/api/v1";
   static const String bancardBaseUrl = webApiUrl;
-  static const imageUrl="$webApiUrl/public/storage";
+  //static const imageUrl="$webApiUrl/public/storage";
+  static const imageUrl="$webApiUrl/storage";
   static const prescriptionUrl="$baseApiUrl/prescription/generatePDF";
   static const labInvoiceUrl="$baseApiUrl/invoice/generatePDFLab";
   static const invoiceUrl="$baseApiUrl/invoice/generatePDF";
   static const loginWithGoogleUrl="$baseApiUrl/login_google";
   //Doctors
   static const getDoctorsUrl="$baseApiUrl/get_doctor";
+  // Clinic-aware doctor browse (view_clinic_doctors). Returns per-clinic
+  // fees from user_clinics: user_clinic_opd_fee / user_clinic_video_c_fee /
+  // user_clinic_emergency_fee. Use this for booking flows where the user
+  // already picked a clinic.
+  static const getClinicDoctorsUrl="$baseApiUrl/get_clinic_doctors";
 
   //Review
   static const addDoctorsReviewUrl="$baseApiUrl/add_doctor_review";
   static const getDoctorReviewUrl="$baseApiUrl/get_all_doctor_review";
 
-  //Time Slots
-  static const getTimeSlotsUrl="$baseApiUrl/get_doctor_time_interval";
-  static const getVideoTimeSlotsUrl="$baseApiUrl/get_doctor_video_time_interval";
+  //Time Slots — nested resource URLs are built dynamically in TimeSlotsService.
+  // Pattern: $baseApiUrl/doctors/{doctorId}/clinics/{clinicId}/{time-slots|time-interval/{day}|video-time-slots|video-time-interval/{day}}
+  //
+  // NOTE: get_booked_time_slots stays on the legacy flat URL with `doct_id`
+  // query param — backend ownership prevents renaming the column right now.
   static const getBookedTimeSlotsUrl="$baseApiUrl/get_booked_time_slots";
 
 
@@ -32,6 +40,7 @@ class ApiContents{
 
   //Appointment
   static const addAppUrl="$baseApiUrl/add_appointment";
+  static const addFirstAppUrl="$baseApiUrl/add_first_appointment";
   static const getAppByUIDUrl="$baseApiUrl/get_appointments";
   static const getAppByIDUrl="$baseApiUrl/get_appointment";
 
@@ -40,6 +49,12 @@ class ApiContents{
   static const appointmentCancellationUrl="$baseApiUrl/appointment_cancellation";
   static const deleteAppointmentCancellationUrl="$baseApiUrl/delete_appointment_cancellation";
   static const getAppointmentCancellationUrlByAppId="$baseApiUrl/get_appointment_cancel_req/appointment";
+
+  //Appointment Reschedule
+  static const userAppointmentRescheduleUrl="$baseApiUrl/user_appointment_reschedule";
+  static const rescheduleRequestAddUrl="$baseApiUrl/appointment_reschedule_request";
+  static const rescheduleRequestDeleteUrl="$baseApiUrl/delete_appointment_reschedule_request";
+  static const getRescheduleRequestsByAppIdUrl="$baseApiUrl/get_appointment_reschedule_requests";
 
   //Invoice
   static const getInvoiceUrl="$baseApiUrl/get_invoice";

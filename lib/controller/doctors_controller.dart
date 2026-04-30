@@ -33,7 +33,7 @@ class DoctorsController extends GetxController {
   }
 
 
-  void getDataByDoctId(String doctId) async {
+ /* void getDataByDoctId(String doctId) async {
     isLoading(true);
     try {
       final getData = await DoctorsService.getDataById(doctId: doctId);
@@ -51,5 +51,5 @@ class DoctorsController extends GetxController {
     } finally {
       isLoading(false);
     }
-  }
+  }*/
 }

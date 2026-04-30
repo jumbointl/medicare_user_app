@@ -30,6 +30,10 @@ class PostService {
           headers: {
             'x-api-key': AppConstants.apiKey,
             'Content-Type': 'application/json',
+            // Without Accept: application/json, Laravel auth middleware
+            // serves an HTML redirect to /login on auth failure instead of
+            // a 401 JSON, which would then break json.decode() here.
+            'Accept': 'application/json',
           },
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 20),
@@ -48,9 +52,24 @@ class PostService {
       }
 
       if (response.statusCode == 401) {
-        IToastMsg.showMessage("Session expired. Please log in again.");
-        logOut();
-        return null;
+        // 401 from a login endpoint is a credential rejection (e.g. invalid
+        // Google token, email mismatch), not a session expiry. Only force a
+        // logout when the user already had an active session and the call
+        // was NOT to /login*. Otherwise return the body so the caller can
+        // surface the backend's actual error message.
+        final isLoginEndpoint = url.contains('/login');
+        final hadSession = token.isNotEmpty;
+
+        if (!isLoginEndpoint && hadSession) {
+          IToastMsg.showMessage("Session expired. Please log in again.");
+          logOut();
+          return null;
+        }
+
+        final jsonData = response.data is Map<String, dynamic>
+            ? response.data
+            : null;
+        return jsonData;
       }
 
       if (response.statusCode == 200) {

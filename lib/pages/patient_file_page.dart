@@ -101,7 +101,7 @@ class _PatientFilePageState extends State<PatientFilePage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const SizedBox(height: 3),
-                  Text("${patientFileModel.pFName} ${patientFileModel.pLName}",
+                  Text("full_name".trArgs([patientFileModel.pFName??"", patientFileModel.pLName??""]),
                     style: const TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 14

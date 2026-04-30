@@ -73,7 +73,7 @@ class _PrescriptionListPageState extends State<PrescriptionListPage> {
                     }, icon: const Icon(Icons.download,
                       color: ColorResources.btnColor,
                     )),
-                    title: Text("${prescriptionModel.doctorFName} ${prescriptionModel.doctorLName} #${prescriptionModel.id??"--"}",
+                    title: Text("name_with_id".trArgs([prescriptionModel.doctorFName??"", prescriptionModel.doctorLName??"", "${prescriptionModel.id??"--"}"]),
                       style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500
@@ -81,7 +81,7 @@ class _PrescriptionListPageState extends State<PrescriptionListPage> {
                     subtitle:   Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("${prescriptionModel.patientFName} ${prescriptionModel.patientLName}",
+                        Text("full_name".trArgs([prescriptionModel.patientFName??"", prescriptionModel.patientLName??""]),
                             style:const   TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w400

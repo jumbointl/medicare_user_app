@@ -109,6 +109,8 @@ flutter:
   assets:
     - assets/icons/crown.png
     - assets/icons/logo.png
+    - assets/icons/doctor_male.png
+    - assets/icons/doctor_female.png
     - assets/icons/appshare.svg
     - assets/icons/container_bg.png
     - assets/icons/noData.svg

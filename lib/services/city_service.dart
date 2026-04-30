@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../model/city_model.dart';
 import '../helpers/get_req_helper.dart';
 import '../utilities/api_content.dart';
+import '../utilities/clinic_config.dart';
 
 
 class CityService{
@@ -17,10 +18,11 @@ class CityService{
 
   static Future <List<CityModel>?> getData({String? search})async {
     // fetch data
-    final body = {
+    final body = <String, dynamic>{
       "search":search,
       "active":1
     };
+    ClinicConfig.applyTo(body);
 
     final res=await GetService.getReqWithBodY(getUrl,body);
 
@@ -34,10 +36,11 @@ class CityService{
 
   static Future  getLocationData({String? lat,String? lng})async {
     // fetch data
-    final body = {
+    final body = <String, dynamic>{
       "latitude":lat??"",
       "longitude":lng??""
     };
+    ClinicConfig.applyTo(body);
     if (kDebugMode) {
       debugPrint("CityService.getLocationData lat=$lat lng=$lng");
     }

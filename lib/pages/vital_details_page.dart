@@ -185,7 +185,7 @@ class _VitalsDetailsPageState extends State<VitalsDetailsPage> {
                       ],
                     ),
                     title:startDate!=""&&endDate!=""?
-                    Text("${DateTimeHelper.getDataFormat(startDate)} -  ${DateTimeHelper.getDataFormat(endDate)}",
+                    Text("date_range".trArgs([DateTimeHelper.getDataFormat(startDate), DateTimeHelper.getDataFormat(endDate)]),
                       style: const TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 15
@@ -470,8 +470,7 @@ class _VitalsDetailsPageState extends State<VitalsDetailsPage> {
                                               size: 10,
                                             ) : null,
                                             leading: const Icon(Icons.person),
-                                            title: Text("${familyModel
-                                                .fName} ${familyModel.lName}",
+                                            title: Text("full_name".trArgs([familyModel.fName??"", familyModel.lName??""]),
                                               style: const TextStyle(
                                                   fontWeight: FontWeight.w500,
                                                   fontSize: 15

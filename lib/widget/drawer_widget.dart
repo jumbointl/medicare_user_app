@@ -401,8 +401,11 @@ class IDrawerWidget{
               final   UserController userController0=Get.find(tag: "user");
               userController0.getData();
               notificationDotController.setDotStatus(false);
-              Get.offAllNamed(RouteHelper.getHomePageRoute());
               UserSubscribe.deleteToTopi(topicName: "PATIENT_APP");
+              Get.offAll(() => LoginPage(
+                onSuccessLogin: () =>
+                    Get.offAllNamed(RouteHelper.getHomePageRoute()),
+              ));
             }
 
           });

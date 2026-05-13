@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:medicare_user_app/pages/ai_chat_page.dart';
 import '../pages/appointment_only_home_page.dart';
+import '../pages/home_page.dart';
 import '../pages/blog_details_page.dart';
 import '../pages/clinic_list_page.dart';
 import '../pages/clinic_page.dart';
@@ -142,7 +143,11 @@ class RouteHelper {
   static List<GetPage> routes = [
     //Home Page
 
-    GetPage(name: homePage, page: () => const AppointmentOnlyHomePage()),
+    GetPage(
+        name: homePage,
+        page: () => ClinicConfig.showAppointmentOnly
+            ? const AppointmentOnlyHomePage()
+            : const HomePage()),
     GetPage(name: clinicListPage, page: () => const ClinicListPage()),
     GetPage(name: editUserProfilePage, page: () => const EditProfilePage()),
     GetPage(name: doctorsListPage, page: () =>  DoctorsListPage(

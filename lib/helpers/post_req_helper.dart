@@ -9,6 +9,7 @@ import '../services/user_subscription.dart';
 import '../utilities/api_content.dart';
 import '../utilities/app_constans.dart';
 import '../utilities/sharedpreference_constants.dart';
+import '../pages/auth/login_page.dart';
 import '../widget/toast_message.dart';
 import 'refresh_session.dart';
 import 'package:get/get.dart';
@@ -195,7 +196,9 @@ class PostService {
     final UserController userController0 = Get.find(tag: "user");
     userController0.getData();
     notificationDotController.setDotStatus(false);
-    Get.offAllNamed(RouteHelper.getHomePageRoute());
     UserSubscribe.deleteToTopi(topicName: "PATIENT_APP");
+    Get.offAll(() => LoginPage(
+      onSuccessLogin: () => Get.offAllNamed(RouteHelper.getHomePageRoute()),
+    ));
   }
 }

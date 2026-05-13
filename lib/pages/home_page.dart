@@ -235,6 +235,8 @@ class _HomePageState extends State<HomePage> {
       }
     }
   ];
+  Worker? _loginEpochWorker;
+
   @override
   void initState() {
     super.initState();
@@ -243,6 +245,20 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
       _loadInitialData();
     });
+
+    // Tras login fresh (loginEpoch++ en login_page._handleSuccessLogin)
+    // re-fetcheamos todo. Sin esto los tabs heredan estado vacío del
+    // estado pre-login y obligan al user a pull-to-refresh tab por tab.
+    _loginEpochWorker = ever<int>(userController.loginEpoch, (_) {
+      if (!mounted) return;
+      _loadInitialData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _loginEpochWorker?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadInitialData() async {

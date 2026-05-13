@@ -805,9 +805,9 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
     final today = _todayString();
     final total = _appointments.length;
     final todayCount =
-        _appointments.where((a) => (a.date ?? '') == today).length;
+        _appointments.where((a) => _dayOnly(a.date) == today).length;
     final upcoming = _appointments
-        .where((a) => (a.date ?? '').compareTo(today) > 0)
+        .where((a) => _dayOnly(a.date).compareTo(today) > 0)
         .length;
     return ListView(
       padding: const EdgeInsets.all(12),
@@ -860,6 +860,14 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
   static String _todayString() {
     final now = DateTime.now();
     return '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  // Backend serializa columnas DATE como ISO completo
+  // ("2026-05-11T00:00:00.000Z"); el cliente compara contra "yyyy-MM-dd"
+  // local. Normalizar acá antes de comparar.
+  static String _dayOnly(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
+    return raw.split('T').first.split(' ').first;
   }
 
   /// Maps appointment.type to a brand colour matching the doctor-app borders.
@@ -915,7 +923,7 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
       if (_filterClinicId != null && a.clinicId != _filterClinicId) {
         return false;
       }
-      final d = a.date ?? '';
+      final d = _dayOnly(a.date);
       if (startStr != null && (d.isEmpty || d.compareTo(startStr) < 0)) {
         return false;
       }
@@ -928,7 +936,7 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
     final today = _todayString();
     final now = DateTime.now();
     int ascCompare(AppointmentModel x, AppointmentModel y) {
-      final cd = (x.date ?? '').compareTo(y.date ?? '');
+      final cd = _dayOnly(x.date).compareTo(_dayOnly(y.date));
       if (cd != 0) return cd;
       return (x.timeSlot ?? '').compareTo(y.timeSlot ?? '');
     }
@@ -936,7 +944,7 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
     switch (mode) {
       case _AppointmentMode.today:
         final list = all.where((a) {
-          if ((a.date ?? '') != today) return false;
+          if (_dayOnly(a.date) != today) return false;
           final end = _appointmentEnd(a);
           if (end == null) return true;
           return end.isAfter(now);
@@ -945,7 +953,7 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
         return list;
       case _AppointmentMode.past:
         final list = all.where((a) {
-          final d = a.date ?? '';
+          final d = _dayOnly(a.date);
           if (d.isEmpty) return false;
           if (d.compareTo(today) < 0) return true;
           if (d == today) {
@@ -959,7 +967,7 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
         return list;
       case _AppointmentMode.future:
         final list = all
-            .where((a) => (a.date ?? '').compareTo(today) > 0)
+            .where((a) => _dayOnly(a.date).compareTo(today) > 0)
             .toList();
         list.sort(ascCompare);
         return list;

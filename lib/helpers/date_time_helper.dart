@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class DateTimeHelper {
@@ -49,48 +50,24 @@ class DateTimeHelper {
     String formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
     return formattedDate; // Output: 2024-02-13
   }
+  // Usa las keys i18n `month_jan..month_dec` (definidas en
+  // lib/languages/{en,es,pt,zh,zh_tw}.dart). Antes devolvía literales en
+  // inglés ("Jan/May/...") sin traducir.
   static String getMonthName(int monthCode){
     switch(monthCode){
-      case 1:{
-        return "Jan";
-      }
-      case 2:{
-        return "Feb";
-      }
-      case 3:{
-        return "March";
-      }
-      case 4:{
-        return "April";
-      }
-      case 5:{
-        return "May";
-      }
-      case 6:{
-        return "June";
-      }
-      case 7:{
-        return "July";
-      }
-      case 8:{
-        return "Aug";
-      }
-      case 9:{
-        return "Sep";
-      }
-      case 10:{
-        return "Oct";
-      }
-      case 11:{
-        return "Nov";
-      }
-      case 12:{
-        return "Des";
-      }
-      default:{
-        return "";
-      }
-
+      case 1: return "month_jan".tr;
+      case 2: return "month_feb".tr;
+      case 3: return "month_mar".tr;
+      case 4: return "month_apr".tr;
+      case 5: return "month_may".tr;
+      case 6: return "month_jun".tr;
+      case 7: return "month_jul".tr;
+      case 8: return "month_aug".tr;
+      case 9: return "month_sep".tr;
+      case 10: return "month_oct".tr;
+      case 11: return "month_nov".tr;
+      case 12: return "month_dec".tr;
+      default: return "";
     }
   }
 

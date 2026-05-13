@@ -8,6 +8,11 @@ class UserController extends GetxController {
   var isLoading = false.obs;
   var usersData = UserModel().obs;
   var isError = false.obs;
+  // Bump tras login exitoso (en login_page._handleSuccessLogin). HomePage
+  // suscribe via ever() y dispara re-fetch de todo (departments, doctors,
+  // clinics, banner, blog, notif, config). Sin esto, tras logout→login
+  // los tabs quedan con estado vacío hasta que el user refresca a mano.
+  var loginEpoch = 0.obs;
 
   Future<void> getData() async {
     isLoading(true);

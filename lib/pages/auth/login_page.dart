@@ -852,6 +852,35 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     await preferences.setString(
+      SharedPreferencesConstants.dynamicKey,
+      userData['dynamic_key']?.toString() ?? '',
+    );
+
+    // Refresh-token Fase 2 (Pablo 2026-05-12). Backend Node emite
+    // refresh_token al login; el interceptor 401 lo usará para renovar
+    // session-JWT cuando el de 12h expira (en lugar de forzar logout).
+    final refreshTokenStr = userData['refresh_token']?.toString() ?? '';
+    if (refreshTokenStr.isNotEmpty) {
+      await preferences.setString(
+        SharedPreferencesConstants.refreshToken,
+        refreshTokenStr,
+      );
+      await preferences.setString(
+        SharedPreferencesConstants.refreshTokenCreatedAt,
+        DateTime.now().toUtc().toIso8601String(),
+      );
+    }
+    await preferences.setString(
+      SharedPreferencesConstants.sessionTokenCreatedAt,
+      DateTime.now().toUtc().toIso8601String(),
+    );
+
+    await preferences.setString(
+      SharedPreferencesConstants.loginProvider,
+      userData['login_provider']?.toString() ?? 'password',
+    );
+
+    await preferences.setString(
       SharedPreferencesConstants.uid,
       (data['id'] ?? '').toString(),
     );
@@ -886,6 +915,11 @@ class _LoginPageState extends State<LoginPage> {
 
     UserController userController = Get.find(tag: "user");
     await userController.getData();
+    // Tras fresh login, HomePage tiene estado vacío de pre-login. Bump
+    // del loginEpoch dispara `ever()` en HomePage → re-fetch de todo
+    // (departments, doctors, clinics, banner, etc.). Sin esto el user
+    // tenía que pull-to-refresh tab por tab.
+    userController.loginEpoch.value++;
     await UserService.updateFCM();
     await UserSubscribe.toTopi(topicName: "PATIENT_APP");
 

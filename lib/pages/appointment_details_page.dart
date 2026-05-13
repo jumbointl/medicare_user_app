@@ -20,6 +20,7 @@ import '../helpers/route_helper.dart';
 import '../helpers/theme_helper.dart';
 import '../model/appointment_cancellation_model.dart';
 import '../model/appointment_model.dart';
+import '../widget/patient_call_listener_switch.dart';
 import '../model/clinic_model.dart';
 import '../model/configuration_model.dart';
 import '../model/invoice_model.dart';
@@ -492,12 +493,28 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   }
 
   Widget _buildBody() {
+    final apptIdForSwitch = appointmentModel?.id;
+    final clinicIdForSwitch = appointmentModel?.clinicId;
+    final showCallSwitch = apptIdForSwitch != null &&
+        clinicIdForSwitch != null &&
+        appointmentModel?.status != 'Cancelled' &&
+        appointmentModel?.status != 'Rejected' &&
+        appointmentModel?.status != 'Completed' &&
+        appointmentModel?.status != 'Visited';
+
     return ListView(
       controller: _scrollController,
       padding: const EdgeInsets.all(5),
       children: [
         buildOpDetails(),
         const SizedBox(height: 3),
+        // Panel TV — Switch "Escuchar mi turno". Solo se muestra mientras
+        // el appointment está en curso (no en estados terminales).
+        if (showCallSwitch)
+          PatientCallListenerSwitch(
+            appointmentId: apptIdForSwitch,
+            clinicId: clinicIdForSwitch,
+          ),
         if (_canRetryPayment) _buildRetryPaymentCard(),
         if (_canRetryPayment) const SizedBox(height: 3),
         Padding(

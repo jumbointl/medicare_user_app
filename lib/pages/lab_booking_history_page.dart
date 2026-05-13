@@ -207,10 +207,18 @@ class _LabBookingHistoryPageState extends State<LabBookingHistoryPage> {
     );
   }
   String _appointmentDate(date) {
-    //  print(date);
-    var appointmentDate = date.split("-");
+    // ISO de Node `2026-05-10T00:00:00.000Z` — parsear como DateTime.
+    if (date == null || date.toString().isEmpty) return "";
+    final parsed = DateTime.tryParse(date.toString());
+    final monthNum = parsed?.month ?? int.tryParse(date.toString().split('-').elementAtOrNull(1) ?? '') ?? 0;
+    final dayStr = parsed != null
+        ? parsed.day.toString().padLeft(2, '0')
+        : (date.toString().split('-').elementAtOrNull(2)?.split(RegExp('[T ]')).first ?? '');
+    final yearStr = parsed != null
+        ? parsed.year.toString()
+        : (date.toString().split('-').elementAtOrNull(0) ?? '');
     String appointmentMonth="";
-    switch (int.parse(appointmentDate[1])) {
+    switch (monthNum) {
       case 1:
         appointmentMonth = "month_jan";
         break;
@@ -248,7 +256,7 @@ class _LabBookingHistoryPageState extends State<LabBookingHistoryPage> {
         appointmentMonth = "month_dec";
         break;
     }
-    return "${appointmentDate[2]}-${appointmentMonth.tr}-${appointmentDate[0]}";
+    return "$dayStr-${appointmentMonth.tr}-$yearStr";
 
 
   }

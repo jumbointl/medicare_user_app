@@ -291,10 +291,22 @@ class _MyBookingPageState extends State<MyBookingPage> {
     );
   }
   Widget _appointmentDate(date) {
-  //  print(date);
-    var appointmentDate = date.split("-");
+    // El backend ahora devuelve ISO completo (`2026-05-10T00:00:00.000Z`)
+    // — el split por "-" dejaba el día como "10T00:00:00.000Z". Parseamos
+    // como DateTime para sacar mes/día/año limpios.
+    if (date == null || date.toString().isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final parsed = DateTime.tryParse(date.toString());
+    final monthNum = parsed?.month ?? int.tryParse(date.toString().split('-').elementAtOrNull(1) ?? '') ?? 0;
+    final dayStr = parsed != null
+        ? parsed.day.toString().padLeft(2, '0')
+        : (date.toString().split('-').elementAtOrNull(2)?.split(RegExp('[T ]')).first ?? '');
+    final yearStr = parsed != null
+        ? parsed.year.toString()
+        : (date.toString().split('-').elementAtOrNull(0) ?? '');
     String appointmentMonth="";
-    switch (int.parse(appointmentDate[1])) {
+    switch (monthNum) {
       case 1:
         appointmentMonth = "month_jan";
         break;
@@ -341,13 +353,13 @@ class _MyBookingPageState extends State<MyBookingPage> {
            fontWeight: FontWeight.w600,
               fontSize: 15,
             )),
-        Text(appointmentDate[2],
+        Text(dayStr,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: ColorResources.primaryColor,
               fontSize: 35,
             )),
-        Text(appointmentDate[0],
+        Text(yearStr,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 15,

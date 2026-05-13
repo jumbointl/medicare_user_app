@@ -6,13 +6,45 @@ import '../helpers/route_helper.dart';
 import '../controller/notification_dot_controller.dart';
 import '../controller/user_controller.dart';
 import '../services/user_subscription.dart';
+import '../utilities/api_content.dart';
 import '../utilities/app_constans.dart';
 import '../utilities/sharedpreference_constants.dart';
 import '../widget/toast_message.dart';
+import 'refresh_session.dart';
 import 'package:get/get.dart';
 
 class PostService {
-  static Future<dynamic> postReq(String url, dynamic body) async {
+  // Llama POST /v1/refresh-dynamic-key con el JWT actual y devuelve el
+  // nuevo dynamic_key. Devuelve null si falla (server unreachable, JWT
+  // expirado, etc.) — el caller decide qué hacer.
+  static Future<String?> _tryRefreshDynamicKey(String token) async {
+    try {
+      final dio = Dio(
+        BaseOptions(
+          headers: {
+            'x-api-key': AppConstants.apiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'authorization': 'Bearer $token',
+          },
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+      final res = await dio.post(ApiContents.refreshDynamicKeyUrl);
+      if (res.statusCode == 200 && res.data is Map) {
+        final dynKey = res.data['dynamic_key']?.toString();
+        if (dynKey != null && dynKey.isNotEmpty) {
+          return dynKey;
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) print('refreshDynamicKey error: $e');
+    }
+    return null;
+  }
+
+  static Future<dynamic> postReq(String url, dynamic body, {bool isRetry = false}) async {
     if (kDebugMode) {
       print("======Url==========");
       print(url);
@@ -23,6 +55,8 @@ class PostService {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     final token =
         preferences.getString(SharedPreferencesConstants.token) ?? "";
+    final dynamicKey =
+        preferences.getString(SharedPreferencesConstants.dynamicKey) ?? "";
 
     try {
       final dio = Dio(
@@ -42,6 +76,12 @@ class PostService {
       );
 
       dio.options.headers["authorization"] = "Bearer $token";
+      // Solo cuando lo tenemos: el backend Node lo emite desde 2026-05-08;
+      // versiones anteriores no lo guardan y el header se omite (server en
+      // soft-rollout deja pasar igual).
+      if (dynamicKey.isNotEmpty) {
+        dio.options.headers["x-dynamic-key"] = dynamicKey;
+      }
       dio.options.validateStatus = (status) => status != null && status < 500;
 
       final response = await dio.post(url, data: body);
@@ -52,15 +92,53 @@ class PostService {
       }
 
       if (response.statusCode == 401) {
+        // 401 con header X-Auth-Reason: dynamic-key → server rechazó el
+        // dynamic_key (caducó, fuera de ventana key1+key2). Aplicar la
+        // regla del login_provider:
+        //   google   → refresh-dynamic-key + retry una vez (anti-bucle).
+        //   password → logOut.
+        final reason = response.headers.value('x-auth-reason') ??
+            response.headers.value('X-Auth-Reason');
+        if (!isRetry && reason == 'dynamic-key' && token.isNotEmpty) {
+          final provider = preferences
+                  .getString(SharedPreferencesConstants.loginProvider) ??
+              '';
+          if (provider == 'google') {
+            final newKey = await _tryRefreshDynamicKey(token);
+            if (newKey != null) {
+              await preferences.setString(
+                SharedPreferencesConstants.dynamicKey,
+                newKey,
+              );
+              return await postReq(url, body, isRetry: true);
+            }
+          }
+          IToastMsg.showMessage("Session expired. Please log in again.");
+          logOut();
+          return null;
+        }
+
         // 401 from a login endpoint is a credential rejection (e.g. invalid
         // Google token, email mismatch), not a session expiry. Only force a
         // logout when the user already had an active session and the call
         // was NOT to /login*. Otherwise return the body so the caller can
         // surface the backend's actual error message.
         final isLoginEndpoint = url.contains('/login');
+        final isRefreshEndpoint =
+            url.contains('/refresh') || url.contains('/refresh-dynamic-key');
         final hadSession = token.isNotEmpty;
 
         if (!isLoginEndpoint && hadSession) {
+          // Refresh-token Fase 2 (Pablo 2026-05-12). Antes de forzar
+          // logout intentamos renovar session-JWT con el refresh_token.
+          // Si funciona reintentamos la request una sola vez (isRetry
+          // anti-bucle). Si no funciona, recién ahí logOut.
+          if (!isRetry && !isRefreshEndpoint) {
+            final ok = await tryRefreshSession();
+            if (ok) {
+              return await postReq(url, body, isRetry: true);
+            }
+          }
           IToastMsg.showMessage("Session expired. Please log in again.");
           logOut();
           return null;

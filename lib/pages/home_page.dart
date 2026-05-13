@@ -45,7 +45,6 @@ import '../widget/search_box_widget.dart';
 import 'package:location/location.dart' as loc;
 import 'package:app_settings/app_settings.dart';
 
-import 'edit_profile_page.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -147,17 +146,7 @@ class _HomePageState extends State<HomePage> {
         }else{
 
           Get.to(() => LoginPage(
-            onSuccessLogin: () {
-              Get.back();
-              Get.to(
-                    () => LoginPage(
-                  onSuccessLogin: () {
-                    Get.back();
-                    Get.to(() => const EditProfilePage(autoCloseSeconds: 0));
-                  },
-                ),
-              );
-            },
+            onSuccessLogin: () => Get.back(),
           ));
         }
       }

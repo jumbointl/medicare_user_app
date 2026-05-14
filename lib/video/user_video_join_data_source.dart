@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_conference/video_conference.dart';
 
 import '../utilities/api_content.dart';
+import '../utilities/sharedpreference_constants.dart';
 
 class UserVideoJoinDataSource implements VideoJoinDataSource {
   @override
@@ -12,12 +14,25 @@ class UserVideoJoinDataSource implements VideoJoinDataSource {
   }) async {
     final uri = Uri.parse('${ApiContents.baseApiUrl}/agora/video/join-data');
 
+    // Backend medicare-node-api exige Bearer JWT + x-dynamic-key en
+    // endpoints autenticados (2026-05-08+). Sin estos headers el
+    // join-data tira 401 y la pantalla de videollamada queda en error.
+    // Pablo 2026-05-13.
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(SharedPreferencesConstants.token) ?? '';
+    final dynamicKey =
+        prefs.getString(SharedPreferencesConstants.dynamicKey) ?? '';
+
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'x-api-key': 'solexpress_2026_api_key_x9LmP2Qa7vK81',
+    };
+    if (token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
+    if (dynamicKey.isNotEmpty) headers['x-dynamic-key'] = dynamicKey;
+
     final response = await http.post(
       uri,
-      headers: const {
-        'Content-Type': 'application/json',
-        'x-api-key': 'solexpress_2026_api_key_x9LmP2Qa7vK81',
-      },
+      headers: headers,
       body: jsonEncode({
         'appointment_id': appointmentId,
         'user_id': userId,

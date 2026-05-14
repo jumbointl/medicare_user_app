@@ -1,11 +1,9 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utilities/api_content.dart';
 import '../utilities/app_constans.dart';
-import '../utilities/sharedpreference_constants.dart';
 
 class BancardAppointmentPaymentProvider {
   Future<Map<String, dynamic>?> startAppointmentPayment({
@@ -21,10 +19,6 @@ class BancardAppointmentPaymentProvider {
   }) async {
     const String route =
         '${ApiContents.bancardBaseUrl}/api/v1/bancard/card/appointment/start';
-
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String token =
-        prefs.getString(SharedPreferencesConstants.token) ?? '';
 
     final Map<String, dynamic> body = {
       'appointment_id': appointmentId,

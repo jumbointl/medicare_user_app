@@ -111,7 +111,7 @@ class _RescheduleAppointmentPageState extends State<RescheduleAppointmentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Reschedule appointment')),
+      appBar: AppBar(title: Text('reschedule'.tr)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -144,7 +144,7 @@ class _RescheduleAppointmentPageState extends State<RescheduleAppointmentPage> {
               ),
             const SizedBox(height: 16),
             ListTile(
-              title: const Text('New date'),
+              title: Text('new_date'.tr),
               subtitle: Text(_date == null
                   ? 'Pick a date'
                   : '${_date!.year}-${_date!.month.toString().padLeft(2, '0')}-${_date!.day.toString().padLeft(2, '0')}'),
@@ -152,7 +152,7 @@ class _RescheduleAppointmentPageState extends State<RescheduleAppointmentPage> {
               onTap: _pickDate,
             ),
             ListTile(
-              title: const Text('New time'),
+              title: Text('new_time'.tr),
               subtitle: Text(_time == null
                   ? 'Pick a time'
                   : _time!.format(context)),
@@ -162,9 +162,9 @@ class _RescheduleAppointmentPageState extends State<RescheduleAppointmentPage> {
             const SizedBox(height: 8),
             TextField(
               controller: _notesCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'notes_optional'.tr,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),

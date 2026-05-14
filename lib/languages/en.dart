@@ -480,6 +480,10 @@ final Map<String, Map<String, String>> enKeys = {
     "all_clinics": "All clinics",
     "from_date": "From",
     "to_date": "To",
-    "clear_filters": "Clear filters"
+    "clear_filters": "Clear filters",
+    "refresh_video_call_status": "Refresh video call status",
+    "search_pathology_lab": "Search Pathology Lab",
+    "notes_optional": "Notes (optional)",
+    "logout_exit_app_confirm": "Log out and exit the app?"
   }
 };

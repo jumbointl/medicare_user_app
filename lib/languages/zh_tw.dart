@@ -463,6 +463,10 @@ final Map<String, Map<String, String>> zhTwKeys = {
     "all_clinics": "全部診所",
     "from_date": "起始",
     "to_date": "截止",
-    "clear_filters": "清除篩選"
+    "clear_filters": "清除篩選",
+    "refresh_video_call_status": "重新整理視訊通話狀態",
+    "search_pathology_lab": "搜尋病理實驗室",
+    "notes_optional": "備註（選填）",
+    "logout_exit_app_confirm": "登出並關閉應用程式？"
   }
 };

@@ -15,14 +15,12 @@ import '../bancard/medicare_client_payment_gateway_page.dart';
 import '../controller/appointment_cancel_req_controller.dart';
 import '../controller/prescription_controller.dart';
 import '../helpers/date_time_helper.dart';
-import '../helpers/post_req_helper.dart';
 import '../helpers/route_helper.dart';
 import '../helpers/theme_helper.dart';
 import '../model/appointment_cancellation_model.dart';
 import '../model/appointment_model.dart';
 import '../widget/patient_call_listener_switch.dart';
 import '../model/clinic_model.dart';
-import '../model/configuration_model.dart';
 import '../model/invoice_model.dart';
 import '../model/prescription_model.dart';
 import '../pages/patient_file_page.dart';
@@ -41,7 +39,6 @@ import '../services/user_service.dart';
 import '../utilities/api_content.dart';
 import '../utilities/colors_constant.dart';
 import '../utilities/image_constants.dart';
-import '../utilities/socket_config.dart';
 import '../video/user_video_join_data_source.dart';
 import '../widget/app_bar_widget.dart';
 import '../widget/button_widget.dart';
@@ -407,12 +404,6 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
         raw == 'googlemeet' ||
         raw == 'meet';
   }
-  bool get _isAppointmentPaid {
-    final String paymentStatus =
-    (appointmentModel?.paymentStatus ?? '').toLowerCase().trim();
-    return paymentStatus == 'paid';
-  }
-
   bool get _isAppointmentPendingPayment {
     final String paymentStatus =
     (appointmentModel?.paymentStatus ?? '').toLowerCase().trim();
@@ -467,7 +458,7 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             ),
           ),
           IconButton(
-            tooltip: 'Refrescar estado de videollamada',
+            tooltip: 'refresh_video_call_status'.tr,
             onPressed: _refreshingJoin ? null : _manualRefreshJoinData,
             icon: _refreshingJoin
                 ? const SizedBox(
@@ -672,20 +663,6 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
     });
   }
 
-  String _formatVideoCountdown(int seconds) {
-    final hours = seconds ~/ 3600;
-    final minutes = (seconds % 3600) ~/ 60;
-    final secs = seconds % 60;
-
-    if (hours > 0) {
-      return '${hours.toString().padLeft(2, '0')}:'
-          '${minutes.toString().padLeft(2, '0')}:'
-          '${secs.toString().padLeft(2, '0')}';
-    }
-
-    return '${minutes.toString().padLeft(2, '0')}:'
-        '${secs.toString().padLeft(2, '0')}';
-  }
   String _formatJoinCloseTime() {
     final int joinClosesAt = appointmentModel?.videoJoinClosesAt ?? 0;
     if (joinClosesAt <= 0) return '--:--';
@@ -2584,31 +2561,4 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
     await getAndSetData();
   }
 
-  Map<String, dynamic> _parseDynamicMap(dynamic rawData) {
-    if (rawData == null) return <String, dynamic>{};
-
-    if (rawData is Map<String, dynamic>) {
-      return rawData;
-    }
-
-    if (rawData is Map) {
-      return Map<String, dynamic>.from(rawData);
-    }
-
-    if (rawData is String) {
-      try {
-        final dynamic decoded = jsonDecode(rawData);
-        if (decoded is Map<String, dynamic>) {
-          return decoded;
-        }
-        if (decoded is Map) {
-          return Map<String, dynamic>.from(decoded);
-        }
-      } catch (_) {
-        return <String, dynamic>{};
-      }
-    }
-
-    return <String, dynamic>{};
-  }
 }

@@ -69,7 +69,7 @@ class _PathologistListPageState extends State<PathologistListPage> {
         _searchTextCityController.text==""?Container():
         ISearchBox.buildSearchBox(
           textEditingController: _searchTextDoctorsController,
-          labelText: "Search Pathology Lab",
+          labelText: "search_pathology_lab".tr,
           onChanged: (){
             filterClinics(_searchTextDoctorsController.text);
           },

@@ -463,6 +463,10 @@ final Map<String, Map<String, String>> zhKeys = {
     "all_clinics": "全部诊所",
     "from_date": "起始",
     "to_date": "截止",
-    "clear_filters": "清除筛选"
+    "clear_filters": "清除筛选",
+    "refresh_video_call_status": "刷新视频通话状态",
+    "search_pathology_lab": "搜索病理实验室",
+    "notes_optional": "备注（可选）",
+    "logout_exit_app_confirm": "退出账号并关闭应用？"
   }
 };

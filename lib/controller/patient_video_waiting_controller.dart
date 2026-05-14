@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_conference/video_conference.dart';
 
 import '../services/patient_video_join_check_service.dart';
-import '../video/user_video_join_data_source.dart';
 
 class PatientVideoWaitingController {
   final int appointmentId;

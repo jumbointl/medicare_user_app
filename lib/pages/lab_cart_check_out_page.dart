@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
@@ -8,13 +7,11 @@ import 'package:udemy_core/udemy_core.dart';
 import 'package:medicare_user_app/helpers/currency_formatter_helper.dart';
 import 'package:medicare_user_app/services/lab_booking_service.dart';
 import 'package:medicare_user_app/services/pathologist_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/lab_cart_controller.dart';
 import '../model/lab_cart_model.dart';
 import '../services/configuration_service.dart';
 import '../services/coupon_service.dart';
 import '../services/lab_cart_service.dart';
-import '../utilities/sharedpreference_constants.dart';
 import '../widget/app_bar_widget.dart';
 import 'package:get/get.dart';
 import '../widget/bottom_button.dart';
@@ -71,9 +68,6 @@ class _LabCartCheckOutPageState extends State<LabCartCheckOutPage> {
   // double unitTaxAmount=0;
   double unitTotalAmount=0;
   double totalAmount=0;
-
-  final GlobalKey<FormState> _formKey3 =  GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
 
   @override
   void initState() {

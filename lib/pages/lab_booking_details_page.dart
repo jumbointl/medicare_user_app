@@ -29,8 +29,6 @@ import '../widget/image_box_widget.dart';
 import '../widget/toast_message.dart';
 import 'package:get/get.dart';
 import '../bancard/bancard_lab_booking_payment_provider.dart';
-import '../bancard/medicare_client_payment_gateway_page.dart';
-import '../services/user_service.dart';
 class LabBookingDetailsPage extends StatefulWidget {
   final String? labBookingId;
   const LabBookingDetailsPage({super.key,this.labBookingId});
@@ -57,7 +55,6 @@ class _LabBookingDetailsPageState extends State<LabBookingDetailsPage> {
   String? phone;
   String? whatsapp;
   bool patientFileAvailable=false;
-  bool _isRetryPaymentLoading = false;
   final BancardLabBookingPaymentProvider bancardLabBookingPaymentProvider =
   BancardLabBookingPaymentProvider();
   @override
@@ -68,30 +65,6 @@ class _LabBookingDetailsPageState extends State<LabBookingDetailsPage> {
         bookingId: widget.labBookingId ?? "-1");
 
     super.initState();
-  }
-  bool get _isBookingPaid {
-    final String paymentStatus =
-    (appointmentModel?.paymentStatus ?? '').toLowerCase().trim();
-    return paymentStatus == 'paid';
-  }
-
-  bool get _isBookingPendingPayment {
-    final String paymentStatus =
-    (appointmentModel?.paymentStatus ?? '').toLowerCase().trim();
-
-    if (paymentStatus == 'paid') return false;
-    if (paymentStatus == 'pending') return true;
-    if (paymentStatus == 'unpaid') return true;
-    if (paymentStatus.isEmpty) return true;
-
-    return true;
-  }
-
-  bool get _canRetryPayment {
-    if (appointmentModel == null) return false;
-    final String status = (appointmentModel?.status ?? '').trim();
-    if (status == 'Cancelled' || status == 'Rejected') return false;
-    return _isBookingPendingPayment;
   }
   @override
   Widget build(BuildContext context) {

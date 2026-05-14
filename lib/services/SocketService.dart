@@ -54,10 +54,6 @@ class SocketService {
         final channelName = event.channelName;
         final eventName = event.eventName;
 
-        if (channelName == null || eventName == null) {
-          return;
-        }
-
         final callback = _listeners[_key(channelName, eventName)];
         if (callback == null) {
           return;

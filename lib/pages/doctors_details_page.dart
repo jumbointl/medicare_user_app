@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -2299,34 +2298,6 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
 
     final diff = endMinutes - startMinutes;
     return diff > 0 ? diff : 15;
-  }
-
-  Map<String, dynamic> _parseDynamicMap(dynamic rawData) {
-    if (rawData == null) return <String, dynamic>{};
-
-    if (rawData is Map<String, dynamic>) {
-      return rawData;
-    }
-
-    if (rawData is Map) {
-      return Map<String, dynamic>.from(rawData);
-    }
-
-    if (rawData is String) {
-      try {
-        final dynamic decoded = jsonDecode(rawData);
-        if (decoded is Map<String, dynamic>) {
-          return decoded;
-        }
-        if (decoded is Map) {
-          return Map<String, dynamic>.from(decoded);
-        }
-      } catch (_) {
-        return <String, dynamic>{};
-      }
-    }
-
-    return <String, dynamic>{};
   }
 
   Future<void> _handleGatewayResult(dynamic result, int appointmentId) async {

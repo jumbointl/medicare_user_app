@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'language_storage_helper.dart';
-import 'translation.dart';
 
 class LanguageController extends GetxController {
   final RxString currentCode = 'es'.obs;

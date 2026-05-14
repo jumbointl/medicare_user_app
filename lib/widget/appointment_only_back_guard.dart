@@ -51,11 +51,11 @@ class AppointmentOnlyBackGuard extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text("logout".tr),
-        content: const Text("¿Cerrar sesión y salir de la aplicación?"),
+        content: Text("logout_exit_app_confirm".tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text("Cancelar"),
+            child: Text("cancel".tr),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),

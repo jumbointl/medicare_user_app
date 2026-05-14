@@ -480,6 +480,10 @@ final Map<String, Map<String, String>> esKeys = {
 "all_clinics": "Todas las clínicas",
 "from_date": "Desde",
 "to_date": "Hasta",
-"clear_filters": "Limpiar filtros"
+"clear_filters": "Limpiar filtros",
+"refresh_video_call_status": "Refrescar estado de videollamada",
+"search_pathology_lab": "Buscar laboratorio de patología",
+"notes_optional": "Notas (opcional)",
+"logout_exit_app_confirm": "¿Cerrar sesión y salir de la aplicación?"
 }
 };

@@ -463,6 +463,10 @@ final Map<String, Map<String, String>> ptKeys = {
     "all_clinics": "Todas as clínicas",
     "from_date": "De",
     "to_date": "Até",
-    "clear_filters": "Limpar filtros"
+    "clear_filters": "Limpar filtros",
+    "refresh_video_call_status": "Atualizar estado da videochamada",
+    "search_pathology_lab": "Buscar laboratório de patologia",
+    "notes_optional": "Notas (opcional)",
+    "logout_exit_app_confirm": "Sair da conta e fechar o app?"
   }
 };

@@ -10,7 +10,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import '../../controller/user_controller.dart';
-import '../../helpers/route_helper.dart';
 import '../../services/user_service.dart';
 import '../../controller/timer_controller.dart';
 import '../../helpers/theme_helper.dart';
@@ -158,7 +157,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: _isLoading
                     ? const ILoadingIndicatorWidget()
                     : SmallButtonsWidget(
-                  title: "Continue with Google",
+                  title: "continue_with_google".tr,
                   onPressed: _handleGoogleLogin,
                 ),
               ),

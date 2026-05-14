@@ -36,7 +36,7 @@ class _FullScreenImageViewerPageState extends State<FullScreenImageViewerPage> {
         builder: (context, index) {
 
           return PhotoViewGalleryPageOptions(
-            imageProvider:  CachedNetworkImageProvider("${ApiContents.imageUrl}/${widget.images[index]['image']}",),
+            imageProvider: ApiContents.safeImage(widget.images[index]['image']?.toString()),
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2,
           );

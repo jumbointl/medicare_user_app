@@ -208,14 +208,7 @@ class _AiChatPageState extends State<AiChatPage> {
               radius: 28,
               backgroundColor:
               ColorResources.primaryColor.withOpacity(.1),
-              backgroundImage: doctor.image != ""
-                  ? NetworkImage(
-                "${ApiContents.imageUrl}/${doctor.image}",
-              )
-                  : null,
-              child: doctor.image == ""
-                  ? const Icon(Icons.person, size: 30)
-                  : null,
+              backgroundImage: ApiContents.safeImage(doctor.image),
             ),
             const SizedBox(width: 10),
 

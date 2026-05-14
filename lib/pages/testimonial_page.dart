@@ -100,10 +100,10 @@ class _TestimonialPageState extends State<TestimonialPage> {
                       _buildRatingBar(testimonialModel.ratting??0),
                     ],
                   ),
-                  testimonialModel.image==null?Container(): CircleAvatar(
+                  CircleAvatar(
                     radius: 30.0,
                     backgroundImage:
-                    NetworkImage("${ApiContents.imageUrl}/${testimonialModel.image}"),
+                    ApiContents.safeImage(testimonialModel.image),
                     backgroundColor: Colors.transparent,
                   )
                 ],

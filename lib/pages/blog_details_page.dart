@@ -161,9 +161,7 @@ class _BlogDetailsPageState extends State<BlogDetailsPage> {
                         shape: BoxShape.circle,
                         image: DecorationImage(
                           fit: BoxFit.fill,
-                          image: NetworkImage(
-                              '${ApiContents.imageUrl}/${authorDetails['image']}'
-                          ),
+                          image: ApiContents.safeImage(authorDetails['image']?.toString()),
                         ),
                       ),
                     )

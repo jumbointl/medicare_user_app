@@ -472,9 +472,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                                  shape: BoxShape.circle,
                                  image: DecorationImage(
                                    fit: BoxFit.fill,
-                                   image: NetworkImage(
-                                       '${ApiContents.imageUrl}/${departmentModel.image}'
-                                   ),
+                                   image: ApiContents.safeImage(departmentModel.image),
                                  ),
                                ),
                              )

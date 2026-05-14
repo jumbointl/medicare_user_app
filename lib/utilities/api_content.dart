@@ -1,9 +1,11 @@
 // 2026-05-11: user-app pega TODO contra medicare-node-api (Node).
 // Los endpoints faltantes (ver medicare-node-api/docs/endpoints-missing-in-node.md)
-// devuelven 404 hasta que se porten — el cliente debe manejar el error en
+// devuelven 404 hasta que se porten build — el cliente debe manejar el error en
 // cada service en lugar de fallback a Laravel.
 //
 // Pusher sigue siendo un servicio externo (Pusher.com), no medicare-api.
+import 'package:flutter/widgets.dart';
+
 class ApiContents {
   static const webApiUrl = "https://medicare.solexpresspy.com";
   static const baseApiUrl = "$webApiUrl/api/v1";
@@ -17,6 +19,33 @@ class ApiContents {
   // assets servidos por el host de la API (Node delega a Laravel storage
   // mientras no exista CDN propio).
   static const imageUrl = "$webApiUrl/storage";
+
+  // Asset placeholder usado cuando un campo de imagen viene null/empty.
+  // Declarado en pubspec.yaml. NO removerlo sin actualizar safeImage().
+  static const noAvailableAsset = 'assets/icons/no-available.png';
+
+  static bool _isFalsy(String? f) {
+    if (f == null) return true;
+    final t = f.trim();
+    return t.isEmpty || t == 'null' || t == 'undefined';
+  }
+
+  /// URL completa hacia el storage backend, o cadena vacía si el campo es
+  /// null/empty/literal "null"/"undefined". Usar para call sites que pasan
+  /// el resultado a ImageBoxFillWidget (que detecta vacío y muestra placeholder).
+  static String imgUrl(String? field) {
+    if (_isFalsy(field)) return '';
+    return '$imageUrl/${field!.trim()}';
+  }
+
+  /// ImageProvider listo para `DecorationImage(image: ...)`,
+  /// `CircleAvatar(backgroundImage: ...)` o cualquier consumo de ImageProvider.
+  /// Devuelve AssetImage local cuando el campo es null/empty/falsy.
+  static ImageProvider safeImage(String? field) {
+    if (_isFalsy(field)) return const AssetImage(noAvailableAsset);
+    return NetworkImage('$imageUrl/${field!.trim()}');
+  }
+
   // PDF generators (invoice + prescription) — endpoints en Node.
   static const prescriptionUrl = "$baseApiUrl/prescription/generatePDF";
   static const labInvoiceUrl = "$baseApiUrl/invoice/generatePDFLab";

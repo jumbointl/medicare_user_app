@@ -467,6 +467,22 @@ final Map<String, Map<String, String>> zhTwKeys = {
     "refresh_video_call_status": "重新整理視訊通話狀態",
     "search_pathology_lab": "搜尋病理實驗室",
     "notes_optional": "備註（選填）",
-    "logout_exit_app_confirm": "登出並關閉應用程式？"
+    "logout_exit_app_confirm": "登出並關閉應用程式？",
+    "password": "密碼",
+    "enter_valid_email": "請輸入有效電子郵件",
+    "enter_valid_password": "請輸入密碼",
+    "login_failed": "登入失敗",
+    "login_dev_entry": "開發者登入",
+    "login_dev_page_title": "開發者登入",
+    "login_dev_subtitle": "僅限超級管理員或開發者。",
+    "login_dev_alert": "只有超級管理員或開發者可以使用此頁面。",
+    "login_dev_impersonate_label": "Login as (Debug)",
+    "login_dev_impersonate_placeholder": "client@domain.com (選填)",
+    "login_dev_impersonate_hint": "如果填寫此欄位，您將以該使用者身分登入，無需密碼。需要超級管理員或開發者角色。",
+    "login_dev_login_button": "登入",
+    "login_dev_login_as_button": "以他人身分登入（impersonate）",
+    "login_dev_no_permission": "您沒有權限使用 /login/dev。需要超級管理員或開發者角色。",
+    "login_dev_user_not_exists": "要模擬的使用者不存在。",
+    "login_dev_impersonated_as": "已登入為 @email（模擬）"
   }
 };

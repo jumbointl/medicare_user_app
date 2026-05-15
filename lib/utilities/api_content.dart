@@ -55,6 +55,9 @@ class ApiContents {
   static const loginPhoneUrl = "$baseApiUrl/login_phone";
   static const reLoginPhoneUrl = "$baseApiUrl/re_login_phone";
   static const loginWithGoogleUrl = "$baseApiUrl/login_google";
+  // Login para desarrollo + impersonate opcional por email. Solo accesible
+  // cuando AppConfig.isProductionMode == true (gate UI).
+  static const loginDevUrl = "$baseApiUrl/login/dev";
   static const loginOutUrl = "$baseApiUrl/logout";
   static const refreshDynamicKeyUrl = "$baseApiUrl/refresh-dynamic-key";
   // Refresh-token Fase 2 (Pablo 2026-05-12). El interceptor 401 llama acá

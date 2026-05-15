@@ -92,6 +92,30 @@ class UserService{
       debugPrint('  $res');
     }
   }
+  /// POST /v1/login/dev — login para desarrollo + impersonate opcional.
+  /// El backend gatekeepea por rol (Super Admin o Developer). Si
+  /// `impersonateEmail` viene vacío, autentica al dev con sus propias
+  /// credenciales. Si viene poblado, emite un token a nombre del usuario
+  /// con ese email sin pedir su password. Response incluye
+  /// `impersonator_id` + `impersonator_email` cuando hubo suplantación.
+  static Future<dynamic> loginDev({
+    required String email,
+    required String password,
+    String? impersonateEmail,
+  }) async {
+    final Map<String, dynamic> body = {
+      'email': email.trim().toLowerCase(),
+      'password': password,
+    };
+    final imp = impersonateEmail?.trim() ?? '';
+    if (imp.isNotEmpty) {
+      body['impersonate_email'] = imp.toLowerCase();
+    }
+    final res = await PostService.postReq(ApiContents.loginDevUrl, body);
+    _logLoginResponse('dev', res);
+    return res;
+  }
+
   static Future logOutUser()async{
     Map body={
     };

@@ -24,6 +24,7 @@ import '../../widget/button_widget.dart';
 import '../../widget/input_label_widget.dart';
 import '../../widget/loading_Indicator_widget.dart';
 import '../../widget/toast_message.dart';
+import 'login_dev_page.dart';
 
 class LoginPage extends StatefulWidget {
   final Function? onSuccessLogin;
@@ -172,6 +173,24 @@ class _LoginPageState extends State<LoginPage> {
                 },
                 child: Text("continue_with_phone".tr),
               ),
+              // LoginDev entry — visible solo cuando isProductionMode=true.
+              // Lleva a la pantalla de login para desarrollo + impersonate.
+              if (AppConstants.isProductionMode)
+                TextButton(
+                  onPressed: () {
+                    Get.to(() => LoginDevPage(
+                          onSuccessLogin: widget.onSuccessLogin,
+                        ));
+                  },
+                  child: Text(
+                    "login_dev_entry".tr,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
             ],
           ),
         )

@@ -484,6 +484,22 @@ final Map<String, Map<String, String>> esKeys = {
 "refresh_video_call_status": "Refrescar estado de videollamada",
 "search_pathology_lab": "Buscar laboratorio de patología",
 "notes_optional": "Notas (opcional)",
-"logout_exit_app_confirm": "¿Cerrar sesión y salir de la aplicación?"
+"logout_exit_app_confirm": "¿Cerrar sesión y salir de la aplicación?",
+"password": "Contraseña",
+"enter_valid_email": "Ingresá un email válido",
+"enter_valid_password": "Ingresá una contraseña",
+"login_failed": "El inicio de sesión falló",
+"login_dev_entry": "Login para desarrollo",
+"login_dev_page_title": "Login para desarrollo",
+"login_dev_subtitle": "Solo Super Admin o Developer.",
+"login_dev_alert": "Solo Super Admin o Developer pueden usar esta página.",
+"login_dev_impersonate_label": "Login as (Debug)",
+"login_dev_impersonate_placeholder": "cliente@dominio.com (opcional)",
+"login_dev_impersonate_hint": "Si completás este campo, te logueás como ese usuario sin necesidad de su contraseña. Requiere ser Super Admin o Developer.",
+"login_dev_login_button": "Ingresar",
+"login_dev_login_as_button": "Ingresar como (impersonate)",
+"login_dev_no_permission": "No tenés permiso para usar /login/dev. Requiere rol Super Admin o Developer.",
+"login_dev_user_not_exists": "El usuario a suplantar no existe.",
+"login_dev_impersonated_as": "Logueado como @email (suplantado)"
 }
 };

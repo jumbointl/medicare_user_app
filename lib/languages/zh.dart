@@ -467,6 +467,22 @@ final Map<String, Map<String, String>> zhKeys = {
     "refresh_video_call_status": "刷新视频通话状态",
     "search_pathology_lab": "搜索病理实验室",
     "notes_optional": "备注（可选）",
-    "logout_exit_app_confirm": "退出账号并关闭应用？"
+    "logout_exit_app_confirm": "退出账号并关闭应用？",
+    "password": "密码",
+    "enter_valid_email": "请输入有效邮箱",
+    "enter_valid_password": "请输入密码",
+    "login_failed": "登录失败",
+    "login_dev_entry": "开发者登录",
+    "login_dev_page_title": "开发者登录",
+    "login_dev_subtitle": "仅限超级管理员或开发者。",
+    "login_dev_alert": "只有超级管理员或开发者可以使用此页面。",
+    "login_dev_impersonate_label": "Login as (Debug)",
+    "login_dev_impersonate_placeholder": "client@domain.com (可选)",
+    "login_dev_impersonate_hint": "如果填写此字段，您将以该用户身份登录，无需密码。需要超级管理员或开发者角色。",
+    "login_dev_login_button": "登录",
+    "login_dev_login_as_button": "以他人身份登录（impersonate）",
+    "login_dev_no_permission": "您没有权限使用 /login/dev。需要超级管理员或开发者角色。",
+    "login_dev_user_not_exists": "要模拟的用户不存在。",
+    "login_dev_impersonated_as": "已登录为 @email（模拟）"
   }
 };

@@ -484,6 +484,22 @@ final Map<String, Map<String, String>> enKeys = {
     "refresh_video_call_status": "Refresh video call status",
     "search_pathology_lab": "Search Pathology Lab",
     "notes_optional": "Notes (optional)",
-    "logout_exit_app_confirm": "Log out and exit the app?"
+    "logout_exit_app_confirm": "Log out and exit the app?",
+"password": "Password",
+"enter_valid_email": "Enter a valid email",
+"enter_valid_password": "Enter a password",
+"login_failed": "Login failed",
+"login_dev_entry": "Developer login",
+"login_dev_page_title": "Developer login",
+"login_dev_subtitle": "Super Admin or Developer only.",
+"login_dev_alert": "Only Super Admin or Developer roles can use this page.",
+"login_dev_impersonate_label": "Login as (Debug)",
+"login_dev_impersonate_placeholder": "client@domain.com (optional)",
+"login_dev_impersonate_hint": "If you fill this in, you'll be logged in as that user without their password. Requires Super Admin or Developer role.",
+"login_dev_login_button": "Sign in",
+"login_dev_login_as_button": "Sign in as (impersonate)",
+"login_dev_no_permission": "You don't have permission to use /login/dev. Requires Super Admin or Developer role.",
+"login_dev_user_not_exists": "The user to impersonate does not exist.",
+"login_dev_impersonated_as": "Logged in as @email (impersonated)"
   }
 };

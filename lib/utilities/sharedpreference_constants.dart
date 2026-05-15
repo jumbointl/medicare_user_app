@@ -24,4 +24,10 @@ class SharedPreferencesConstants{
   static const String refreshToken = 'refresh_token';
   static const String refreshTokenCreatedAt = 'refresh_token_created_at';
   static const String sessionTokenCreatedAt = 'session_token_created_at';
+
+  // Auditoría / banner UI cuando un dev (Super Admin/Developer) está
+  // suplantando a otro usuario via POST /v1/login/dev. Persistidos al
+  // hacer login con impersonate_email; vacíos en login normal.
+  static const String impersonatorId = 'impersonator_id';
+  static const String impersonatorEmail = 'impersonator_email';
 }

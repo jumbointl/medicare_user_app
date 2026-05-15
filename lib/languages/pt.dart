@@ -467,6 +467,22 @@ final Map<String, Map<String, String>> ptKeys = {
     "refresh_video_call_status": "Atualizar estado da videochamada",
     "search_pathology_lab": "Buscar laboratório de patologia",
     "notes_optional": "Notas (opcional)",
-    "logout_exit_app_confirm": "Sair da conta e fechar o app?"
+    "logout_exit_app_confirm": "Sair da conta e fechar o app?",
+    "password": "Senha",
+    "enter_valid_email": "Insira um email válido",
+    "enter_valid_password": "Insira uma senha",
+    "login_failed": "Falha no login",
+    "login_dev_entry": "Login para desenvolvimento",
+    "login_dev_page_title": "Login para desenvolvimento",
+    "login_dev_subtitle": "Apenas Super Admin ou Developer.",
+    "login_dev_alert": "Apenas Super Admin ou Developer podem usar esta página.",
+    "login_dev_impersonate_label": "Login as (Debug)",
+    "login_dev_impersonate_placeholder": "cliente@dominio.com (opcional)",
+    "login_dev_impersonate_hint": "Se preencher este campo, você entra como esse usuário sem precisar da senha dele. Requer Super Admin ou Developer.",
+    "login_dev_login_button": "Entrar",
+    "login_dev_login_as_button": "Entrar como (impersonate)",
+    "login_dev_no_permission": "Você não tem permissão para usar /login/dev. Requer função Super Admin ou Developer.",
+    "login_dev_user_not_exists": "O usuário a personificar não existe.",
+    "login_dev_impersonated_as": "Logado como @email (personificado)"
   }
 };

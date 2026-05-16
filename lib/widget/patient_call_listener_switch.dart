@@ -137,7 +137,15 @@ class _PatientCallListenerSwitchState extends State<PatientCallListenerSwitch> {
       partes.add('Turno ${_spellToken(token)}.');
     }
     if (doctor.isNotEmpty) partes.add('Doctor $doctor.');
-    if (sala.isNotEmpty) partes.add('Sala $sala.');
+    if (sala.isNotEmpty) {
+      // Si el nombre del consultorio ya empieza con "sala" o "consultorio"
+      // (ej. "Sala 1", "Consultorio A"), no prependemos "Sala" otra vez
+      // para evitar "sala sala 1". Pablo 2026-05-16.
+      final salaLower = sala.toLowerCase();
+      final yaTienePrefijo = salaLower.startsWith('sala') ||
+          salaLower.startsWith('consultorio');
+      partes.add(yaTienePrefijo ? '$sala.' : 'Sala $sala.');
+    }
     final text = partes.join(' ').trim();
     if (text.isEmpty) return;
     try {

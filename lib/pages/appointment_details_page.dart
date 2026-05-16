@@ -20,6 +20,7 @@ import '../helpers/route_helper.dart';
 import '../helpers/theme_helper.dart';
 import '../model/appointment_cancellation_model.dart';
 import '../model/appointment_model.dart';
+import '../widget/doctor_joined_listener_switch.dart';
 import '../widget/patient_call_listener_switch.dart';
 import '../model/clinic_model.dart';
 import '../model/invoice_model.dart';
@@ -103,6 +104,7 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   bool _socketConnected = false;
   bool _refreshingJoin = false;
   AppointmentSocketService? _appointmentSocket;
+  DoctorJoinedAnnouncerController? _doctorJoinedAnnouncer;
 
   Timer? _joinPollCountdownTimer;
   Timer? _dynamicJoinTimer;
@@ -204,6 +206,9 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
 
     _appointmentSocket?.disconnect();
     _appointmentSocket = null;
+    // Reset announcer to bind it to the current appointmentId. La load()
+    // (lectura de SharedPreferences) la hace el widget cuando se monta.
+    _doctorJoinedAnnouncer = DoctorJoinedAnnouncerController(appointmentId: id);
 
     _appointmentSocket = AppointmentSocketService(
       appointmentId: id,
@@ -225,6 +230,11 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           _waitingForDoctor = false;
           _waitingMessage = null;
         });
+
+        // TTS opcional: si el user activó el switch "Anunciar cuando el
+        // doctor entre", locutamos. Lee el doctor_name del appointmentModel.
+        final docFull = '${appointmentModel?.doctFName ?? ''} ${appointmentModel?.doctLName ?? ''}'.trim();
+        await _doctorJoinedAnnouncer?.announce(doctorName: docFull);
 
         final provider = (_liveVideoProvider ?? '').toLowerCase();
         final link = (_liveMeetingLink ?? '').trim();
@@ -288,6 +298,7 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   void dispose() {
     _joinRefreshTimer?.cancel();
     _appointmentSocket?.disconnect();
+    _doctorJoinedAnnouncer?.dispose();
     _joinPollCountdownTimer?.cancel();
     _videoTimer?.cancel();
     _scrollController.dispose();
@@ -484,8 +495,13 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   Widget _buildBody() {
     final apptIdForSwitch = appointmentModel?.id;
     final clinicIdForSwitch = appointmentModel?.clinicId;
+    // "Escuchar mi turno" solo tiene sentido cuando el paciente ya hizo
+    // check-in (tiene queue number). Antes del check-in el doctor no puede
+    // llamarte de la TV. Pablo 2026-05-16.
+    final alreadyCheckedIn = _queueNumber != null;
     final showCallSwitch = apptIdForSwitch != null &&
         clinicIdForSwitch != null &&
+        alreadyCheckedIn &&
         appointmentModel?.status != 'Cancelled' &&
         appointmentModel?.status != 'Rejected' &&
         appointmentModel?.status != 'Completed' &&
@@ -503,6 +519,13 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           PatientCallListenerSwitch(
             appointmentId: apptIdForSwitch,
             clinicId: clinicIdForSwitch,
+          ),
+        // Switch independiente para Video Consultant: anunciar por TTS
+        // cuando llegue el evento socket `doctor.joined`. Solo se monta si
+        // hay un announcer inicializado (= _initAppointmentSocket corrió).
+        if (_doctorJoinedAnnouncer != null)
+          DoctorJoinedListenerSwitch(
+            controller: _doctorJoinedAnnouncer!,
           ),
         if (_canRetryPayment) _buildRetryPaymentCard(),
         if (_canRetryPayment) const SizedBox(height: 3),

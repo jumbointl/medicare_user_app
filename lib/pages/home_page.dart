@@ -18,6 +18,7 @@ import '../services/city_service.dart';
 import '../controller/depratment_controller.dart';
 import '../controller/doctors_controller.dart';
 import '../controller/notification_dot_controller.dart';
+import '../services/global_call_listener_service.dart';
 import '../helpers/route_helper.dart';
 import '../model/city_model.dart';
 import '../model/department_model.dart';
@@ -233,6 +234,9 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadInitialData();
+      // Carga el flag persistido del "Global escuchar mi turno". Si estaba
+      // en ON, esto auto-conecta el socket + bootstrap REST.
+      GlobalCallListenerService.instance.loadEnabled();
     });
 
     // Tras login fresh (loginEpoch++ en login_page._handleSuccessLogin)
@@ -1536,7 +1540,45 @@ class _HomePageState extends State<HomePage> {
 
                                 ],
                               ),
-                            )
+                            ),
+                            const SizedBox(width: 10),
+                            // Global "Escuchar mi turno" — 3 estados de color
+                            // (Pablo 2026-05-16):
+                            //   blanco (off)   → global apagado
+                            //   amarillo (on, idle) → encendido pero sin canales
+                            //                          clinic suscriptos (no hay
+                            //                          check-ins activos hoy)
+                            //   verde (on, listening) → encendido + 1+ canales
+                            //                            clinic suscriptos
+                            AnimatedBuilder(
+                              animation: Listenable.merge([
+                                GlobalCallListenerService.instance.enabledNotifier,
+                                GlobalCallListenerService.instance.trackedCountNotifier,
+                              ]),
+                              builder: (_, __) {
+                                final svc = GlobalCallListenerService.instance;
+                                final enabled = svc.enabledNotifier.value;
+                                final hasChannels = svc.trackedCountNotifier.value > 0;
+                                final Color iconColor = !enabled
+                                    ? Colors.white70
+                                    : (hasChannels ? Colors.greenAccent : Colors.amberAccent);
+                                final IconData iconData = enabled
+                                    ? Icons.notifications_active
+                                    : Icons.notifications_off;
+                                return GestureDetector(
+                                  onTap: () async {
+                                    await GlobalCallListenerService.instance
+                                        .setEnabled(!enabled);
+                                    if (mounted) setState(() {});
+                                  },
+                                  child: Icon(
+                                    iconData,
+                                    color: iconColor,
+                                    size: 25,
+                                  ),
+                                );
+                              },
+                            ),
                           ],
                         ),
                         Row(

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../languages/language_storage_helper.dart';
 import '../model/language_model.dart';
 import '../services/user_service.dart';
+import '../services/global_call_listener_service.dart';
 import '../services/user_subscription.dart';
 import '../controller/user_controller.dart';
 import '../languages/version_control.dart';
@@ -163,6 +164,9 @@ class IDrawerWidget{
 
 
           }),
+          // Switch global "Escuchar mi turno" — espejo del icon del AppBar
+          // (Pablo 2026-05-16). Tap toggles + cierra el drawer.
+          _buildGlobalListenerSwitch(),
           _buildCardBox("contact_us".tr,Icons.support_agent,(){
             Get.back();
             Get.toNamed(RouteHelper.getContactUsPageRoute());
@@ -305,6 +309,68 @@ class IDrawerWidget{
         );
       } //Error svg
     }
+    );
+  }
+
+  static Widget _buildGlobalListenerSwitch() {
+    final svc = GlobalCallListenerService.instance;
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        svc.enabledNotifier,
+        svc.trackedCountNotifier,
+      ]),
+      builder: (_, __) {
+        final enabled = svc.enabledNotifier.value;
+        final hasChannels = svc.trackedCountNotifier.value > 0;
+        final IconData icon = enabled
+            ? Icons.notifications_active
+            : Icons.notifications_off;
+        final Color iconColor = !enabled
+            ? Colors.grey
+            : (hasChannels ? Colors.green : Colors.amber);
+        final String stateText = !enabled
+            ? "off"
+            : (hasChannels
+                ? "${svc.trackedCountNotifier.value} canal(es)"
+                : "esperando check-in");
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 8, 0),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: iconColor),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Escuchar mi turno",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      stateText,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: iconColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: enabled,
+                activeColor: Colors.green,
+                onChanged: (v) async {
+                  await svc.setEnabled(v);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

@@ -499,13 +499,21 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
     // check-in (tiene queue number). Antes del check-in el doctor no puede
     // llamarte de la TV. Pablo 2026-05-16.
     final alreadyCheckedIn = _queueNumber != null;
-    final showCallSwitch = apptIdForSwitch != null &&
-        clinicIdForSwitch != null &&
-        alreadyCheckedIn &&
-        appointmentModel?.status != 'Cancelled' &&
+    final isOpd = appointmentModel?.type == 'OPD';
+    final isVideoConsultant = appointmentModel?.type == 'Video Consultant';
+    final isInProgress = appointmentModel?.status != 'Cancelled' &&
         appointmentModel?.status != 'Rejected' &&
         appointmentModel?.status != 'Completed' &&
         appointmentModel?.status != 'Visited';
+    final showCallSwitch = apptIdForSwitch != null &&
+        clinicIdForSwitch != null &&
+        isOpd &&
+        alreadyCheckedIn &&
+        isInProgress;
+    // "Anunciar cuando el doctor entre" → solo para Video Consultant.
+    // En OPD el doctor no usa videollamada, el switch no aplica.
+    final showDoctorJoinedSwitch =
+        _doctorJoinedAnnouncer != null && isVideoConsultant && isInProgress;
 
     return ListView(
       controller: _scrollController,
@@ -521,9 +529,9 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             clinicId: clinicIdForSwitch,
           ),
         // Switch independiente para Video Consultant: anunciar por TTS
-        // cuando llegue el evento socket `doctor.joined`. Solo se monta si
-        // hay un announcer inicializado (= _initAppointmentSocket corrió).
-        if (_doctorJoinedAnnouncer != null)
+        // cuando llegue el evento socket `doctor.joined`. Solo aplica a
+        // citas de videollamada — en OPD no tiene sentido.
+        if (showDoctorJoinedSwitch)
           DoctorJoinedListenerSwitch(
             controller: _doctorJoinedAnnouncer!,
           ),

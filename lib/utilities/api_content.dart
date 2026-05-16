@@ -3,15 +3,14 @@
 // devuelven 404 hasta que se porten build — el cliente debe manejar el error en
 // cada service en lugar de fallback a Laravel.
 //
-// Pusher sigue siendo un servicio externo (Pusher.com), no medicare-api.
+// 2026-05-16: Pusher removido. Realtime (`doctor.joined` + panel TV
+// `patient.called`/`recalled`/`attended`) ahora vía Socket.IO directo contra
+// medicare-node-api (mismo host que webApiUrl). Auth con JWT de SharedPrefs.
 import 'package:flutter/widgets.dart';
 
 class ApiContents {
   static const webApiUrl = "https://medicare.solexpresspy.com";
   static const baseApiUrl = "$webApiUrl/api/v1";
-
-  static const String pusherApiKey = '4f102f4f63dd5f65ed18';
-  static const String pusherCluster = 'sa1';
 
   // Bancard gateway todavía se hostea junto al backend Node.
   static const String bancardBaseUrl = webApiUrl;

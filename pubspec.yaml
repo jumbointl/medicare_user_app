@@ -82,7 +82,10 @@ dependencies:
   intl: any
   google_sign_in: ^7.2.0
   flutter_phoenix: ^1.1.1
-  pusher_channels_flutter: ^2.6.0
+  # Real-time channels (doctor.joined + panel TV patient.called/recalled/attended).
+  # Migrado desde pusher_channels_flutter el 2026-05-16 — el backend ya hacía
+  # dual fan-out a Pusher + Socket.IO, ahora consumimos Socket.IO directamente.
+  socket_io_client: ^3.0.2
   # Panel TV — TTS para locutar el turno cuando el switch "Escuchar mi
   # turno" está activado y el doctor llama al paciente desde la TV.
   flutter_tts: ^4.2.3

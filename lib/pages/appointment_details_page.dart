@@ -251,10 +251,7 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
       },
     );
 
-    _appointmentSocket!.connect(
-      apiKey: ApiContents.pusherApiKey,
-      cluster: ApiContents.pusherCluster,
-    ).catchError((error) {
+    _appointmentSocket!.connect().catchError((error) {
       if (!mounted) return;
 
       setState(() {

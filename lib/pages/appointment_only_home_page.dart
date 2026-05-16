@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controller/notification_dot_controller.dart';
+import '../services/global_call_listener_service.dart';
 import '../widget/global_call_listener_icon.dart';
 import '../controller/user_controller.dart';
 import '../helpers/date_time_helper.dart';
@@ -496,30 +497,82 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
           BoxShadow(color: Colors.black12, blurRadius: 4),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.person, color: ColorResources.primaryColor),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _userName.isEmpty ? '-' : _userName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+          Row(
+            children: [
+              const Icon(Icons.person, color: ColorResources.primaryColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _userName.isEmpty ? '-' : _userName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      '${"patient_id".tr}: ${_userId.isEmpty ? '-' : _userId}',
+                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${"patient_id".tr}: ${_userId.isEmpty ? '-' : _userId}',
-                  style: const TextStyle(fontSize: 12, color: Colors.black54),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: 6),
+          _buildGlobalListenerDebugRow(),
         ],
       ),
+    );
+  }
+
+  /// Mini-panel de debug del GlobalCallListenerService — Pablo 2026-05-16.
+  Widget _buildGlobalListenerDebugRow() {
+    final svc = GlobalCallListenerService.instance;
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        svc.enabledNotifier,
+        svc.subscribedClinicsNotifier,
+        svc.trackedAppointmentsNotifier,
+        svc.eventCounter,
+      ]),
+      builder: (_, __) {
+        final enabled = svc.enabledNotifier.value;
+        final clinics = svc.subscribedClinicsNotifier.value;
+        final appts = svc.trackedAppointmentsNotifier.value;
+        final count = svc.eventCounter.value;
+        final last = svc.lastEventLabel.value;
+        return Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: enabled ? Colors.green.withOpacity(0.08) : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Listener: ${enabled ? "ON" : "OFF"}  ·  '
+                'apptIds: ${appts.isEmpty ? "—" : appts.join(",")}',
+                style: const TextStyle(fontSize: 11, color: Colors.black87),
+              ),
+              Text(
+                'clinics: ${clinics.isEmpty ? "—" : clinics.map((c) => "clinic.$c").join(", ")}',
+                style: const TextStyle(fontSize: 11, color: Colors.black54),
+              ),
+              Text(
+                'events: $count · last: $last',
+                style: const TextStyle(fontSize: 11, color: Colors.black54),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

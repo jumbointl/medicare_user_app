@@ -68,6 +68,14 @@ class GlobalCallListenerService {
   /// Notificación pública para que las pantallas se re-renderizen.
   final ValueNotifier<bool> enabledNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<int> trackedCountNotifier = ValueNotifier<int>(0);
+  /// Snapshot debug — actualizado en cada cambio de estado. Útil para
+  /// renderear en UI "Suscripto a: clinic.5, clinic.6". Pablo 2026-05-16.
+  final ValueNotifier<List<int>> subscribedClinicsNotifier =
+      ValueNotifier<List<int>>([]);
+  final ValueNotifier<List<int>> trackedAppointmentsNotifier =
+      ValueNotifier<List<int>>([]);
+  final ValueNotifier<int> eventCounter = ValueNotifier<int>(0);
+  final ValueNotifier<String> lastEventLabel = ValueNotifier<String>('—');
 
   final Map<int, _TrackedAppointment> _tracked = {};
   final Set<int> _subscribedClinics = {};
@@ -137,15 +145,19 @@ class GlobalCallListenerService {
         debugPrint('[GlobalCallListener] socket disconnected');
       })
       ..on('checkin.done', (data) {
+        _bumpEvent('checkin.done', data);
         _handleCheckinDone(data);
       })
       ..on('appointment.finished', (data) {
+        _bumpEvent('appointment.finished', data);
         _handleAppointmentFinished(data);
       })
       ..on('patient.called', (data) {
+        _bumpEvent('patient.called', data);
         _handlePatientCallEvent(data, recalled: false);
       })
       ..on('patient.recalled', (data) {
+        _bumpEvent('patient.recalled', data);
         _handlePatientCallEvent(data, recalled: true);
       });
 
@@ -198,7 +210,7 @@ class GlobalCallListenerService {
         );
         _ensureClinicSubscribed(clinicId);
       }
-      trackedCountNotifier.value = _tracked.length;
+      _refreshTrackedNotifiers();
       debugPrint(
         '[GlobalCallListener] bootstrap: ${_tracked.length} tracked appts',
       );
@@ -213,6 +225,7 @@ class GlobalCallListenerService {
     if (_socket != null && _socket!.connected) {
       _socket!.emit('join', 'clinic.$clinicId');
     }
+    subscribedClinicsNotifier.value = _subscribedClinics.toList();
   }
 
   void _maybeLeaveClinic(int clinicId) {
@@ -222,6 +235,21 @@ class GlobalCallListenerService {
     try {
       _socket?.emit('leave', 'clinic.$clinicId');
     } catch (_) {}
+    subscribedClinicsNotifier.value = _subscribedClinics.toList();
+  }
+
+  void _refreshTrackedNotifiers() {
+    trackedAppointmentsNotifier.value = _tracked.keys.toList();
+    trackedCountNotifier.value = _tracked.length;
+  }
+
+  /// Bumpea contadores de debug. Cada evento socket entra acá ANTES de
+  /// pasar al handler real, así la UI ve también eventos rechazados por
+  /// filtros (útil para diagnosticar "el evento llegó pero no hubo TTS").
+  void _bumpEvent(String name, dynamic data) {
+    eventCounter.value = eventCounter.value + 1;
+    final apptId = (data is Map ? data['appointment_id'] : null);
+    lastEventLabel.value = '$name apptId=$apptId';
   }
 
   void _handleCheckinDone(dynamic data) {
@@ -236,7 +264,7 @@ class GlobalCallListenerService {
       endAt: endAt,
     );
     _ensureClinicSubscribed(clinicId);
-    trackedCountNotifier.value = _tracked.length;
+    _refreshTrackedNotifiers();
     debugPrint(
       '[GlobalCallListener] checkin.done: $apptId @ clinic.$clinicId (end=$endAt)',
     );
@@ -250,7 +278,7 @@ class GlobalCallListenerService {
     if (removed != null) {
       _maybeLeaveClinic(removed.clinicId);
     }
-    trackedCountNotifier.value = _tracked.length;
+    _refreshTrackedNotifiers();
     debugPrint('[GlobalCallListener] appointment.finished: $apptId');
     if (_tracked.isEmpty) {
       debugPrint('[GlobalCallListener] no more tracked appts — pausing TTS');
@@ -319,7 +347,7 @@ class GlobalCallListenerService {
       if (removed != null) _maybeLeaveClinic(removed.clinicId);
     }
     if (toRemove.isNotEmpty) {
-      trackedCountNotifier.value = _tracked.length;
+      _refreshTrackedNotifiers();
       debugPrint(
         '[GlobalCallListener] pruned ${toRemove.length} expired appts',
       );

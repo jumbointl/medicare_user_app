@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controller/notification_dot_controller.dart';
+import '../widget/global_call_listener_icon.dart';
 import '../controller/user_controller.dart';
 import '../helpers/date_time_helper.dart';
 import '../helpers/route_helper.dart';
@@ -174,6 +175,7 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
             ),
             centerTitle: true,
             actions: [
+              const GlobalCallListenerIconButton(),
               IconButton(
                 icon: const Icon(Icons.notifications, color: Colors.white),
                 onPressed: () {

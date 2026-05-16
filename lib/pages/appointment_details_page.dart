@@ -21,6 +21,7 @@ import '../helpers/theme_helper.dart';
 import '../model/appointment_cancellation_model.dart';
 import '../model/appointment_model.dart';
 import '../widget/doctor_joined_listener_switch.dart';
+import '../widget/global_call_listener_icon.dart';
 import '../widget/patient_call_listener_switch.dart';
 import '../model/clinic_model.dart';
 import '../model/invoice_model.dart';
@@ -438,6 +439,7 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
       backgroundColor: ColorResources.bgColor,
       appBar: IAppBar.commonAppBar(title: "appointment".tr,
         actions: [
+          const GlobalCallListenerIconButton(),
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),

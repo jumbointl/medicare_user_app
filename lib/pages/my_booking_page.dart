@@ -8,6 +8,7 @@ import '../helpers/route_helper.dart';
 import '../utilities/colors_constant.dart';
 import '../widget/error_widget.dart';
 import '../widget/no_data_widgets.dart';
+import '../widget/global_call_listener_icon.dart';
 
 class MyBookingPage extends StatefulWidget {
   const MyBookingPage({super.key});
@@ -51,6 +52,9 @@ class _MyBookingPageState extends State<MyBookingPage> {
                 fontSize: 16,
                 fontWeight: FontWeight.w400
             ),),
+          actions: const [
+            GlobalCallListenerIconButton(),
+          ],
           bottom:  TabBar(
             indicatorWeight: 3,
             indicatorColor: ColorResources.primaryColor,

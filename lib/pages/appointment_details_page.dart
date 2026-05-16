@@ -495,10 +495,10 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   Widget _buildBody() {
     final apptIdForSwitch = appointmentModel?.id;
     final clinicIdForSwitch = appointmentModel?.clinicId;
-    // "Escuchar mi turno" solo tiene sentido cuando el paciente ya hizo
-    // check-in (tiene queue number). Antes del check-in el doctor no puede
-    // llamarte de la TV. Pablo 2026-05-16.
-    final alreadyCheckedIn = _queueNumber != null;
+    // Pablo 2026-05-16: el switch "Escuchar mi turno" sale en OPD aunque
+    // no esté hecho el check-in. El widget en sí valida al toggle ON que
+    // el paciente ya tenga queue number (sino el doctor no puede llamarlo
+    // desde la TV) — ver patient_call_listener_switch.dart.
     final isOpd = appointmentModel?.type == 'OPD';
     final isVideoConsultant = appointmentModel?.type == 'Video Consultant';
     final isInProgress = appointmentModel?.status != 'Cancelled' &&
@@ -508,7 +508,6 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
     final showCallSwitch = apptIdForSwitch != null &&
         clinicIdForSwitch != null &&
         isOpd &&
-        alreadyCheckedIn &&
         isInProgress;
     // "Anunciar cuando el doctor entre" → solo para Video Consultant.
     // En OPD el doctor no usa videollamada, el switch no aplica.
@@ -527,6 +526,9 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           PatientCallListenerSwitch(
             appointmentId: apptIdForSwitch,
             clinicId: clinicIdForSwitch,
+            // Si todavía no se hizo check-in, el doctor no puede llamarlo
+            // desde la TV; el switch lo bloquea al toggle ON con un toast.
+            checkedIn: _queueNumber != null,
           ),
         // Switch independiente para Video Consultant: anunciar por TTS
         // cuando llegue el evento socket `doctor.joined`. Solo aplica a
@@ -1199,7 +1201,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _buildVideoConsultAction(),
+                    if (appointmentModel?.type == "Video Consultant")
+                      _buildVideoConsultAction(),
                   ],
                 ),
                 if (appointmentModel?.type == "Video Consultant")

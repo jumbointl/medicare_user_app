@@ -29,12 +29,18 @@ class PatientCallListenerSwitch extends StatefulWidget {
     super.key,
     required this.appointmentId,
     required this.clinicId,
+    this.checkedIn = true,
     this.label = 'Escuchar mi turno',
     this.helpText = 'Anuncia por audio cuando el doctor te llame desde el panel TV.',
   });
 
   final int appointmentId;
   final int clinicId;
+
+  /// Si false, al intentar activar el switch mostramos un toast y NO
+  /// dejamos activarlo (el doctor no puede llamar a alguien que no está
+  /// en la cola). Default true para no romper call-sites legacy.
+  final bool checkedIn;
   final String label;
   final String helpText;
 
@@ -170,6 +176,20 @@ class _PatientCallListenerSwitchState extends State<PatientCallListenerSwitch> {
   }
 
   Future<void> _onToggle(bool value) async {
+    // Guard: el doctor solo puede llamar a un paciente que ya hizo
+    // check-in. Si el cliente intenta activar el switch antes, mostramos
+    // mensaje y rechazamos el cambio.
+    if (value && !widget.checkedIn) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tenés que hacer check-in primero.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
     setState(() => _enabled = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_prefKey(widget.appointmentId), value);

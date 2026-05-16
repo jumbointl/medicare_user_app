@@ -483,6 +483,10 @@ final Map<String, Map<String, String>> zhTwKeys = {
     "login_dev_login_as_button": "以他人身分登入（impersonate）",
     "login_dev_no_permission": "您沒有權限使用 /login/dev。需要超級管理員或開發者角色。",
     "login_dev_user_not_exists": "要模擬的使用者不存在。",
-    "login_dev_impersonated_as": "已登入為 @email（模擬）"
+    "login_dev_impersonated_as": "已登入為 @email（模擬）",
+    "retry": "再試一次",
+    "qr_invalid_payload": "QR Code 無效",
+    "qr_invalid_appointment": "預約編號無效",
+    "scan_kiosko_qr_desc": "請將鏡頭對準診所自助機 QR Code"
   }
 };

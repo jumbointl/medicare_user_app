@@ -483,6 +483,10 @@ final Map<String, Map<String, String>> ptKeys = {
     "login_dev_login_as_button": "Entrar como (impersonate)",
     "login_dev_no_permission": "Você não tem permissão para usar /login/dev. Requer função Super Admin ou Developer.",
     "login_dev_user_not_exists": "O usuário a personificar não existe.",
-    "login_dev_impersonated_as": "Logado como @email (personificado)"
+    "login_dev_impersonated_as": "Logado como @email (personificado)",
+    "retry": "Tentar novamente",
+    "qr_invalid_payload": "Código QR inválido",
+    "qr_invalid_appointment": "ID de consulta inválido",
+    "scan_kiosko_qr_desc": "Aponte a câmera ao QR do quiosque da clínica"
   }
 };

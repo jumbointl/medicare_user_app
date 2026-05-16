@@ -500,6 +500,10 @@ final Map<String, Map<String, String>> esKeys = {
 "login_dev_login_as_button": "Ingresar como (impersonate)",
 "login_dev_no_permission": "No tenés permiso para usar /login/dev. Requiere rol Super Admin o Developer.",
 "login_dev_user_not_exists": "El usuario a suplantar no existe.",
-"login_dev_impersonated_as": "Logueado como @email (suplantado)"
+"login_dev_impersonated_as": "Logueado como @email (suplantado)",
+"retry": "Reintentar",
+"qr_invalid_payload": "Código QR inválido",
+"qr_invalid_appointment": "ID de cita inválido",
+"scan_kiosko_qr_desc": "Apuntá la cámara al QR del kiosko de la clínica"
 }
 };

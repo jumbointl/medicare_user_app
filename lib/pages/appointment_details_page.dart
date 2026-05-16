@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_bar_code/qr/src/qr_code.dart';
 import 'package:star_rating/star_rating.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -2357,18 +2358,7 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                           padding: EdgeInsets.all(20),
                           child: Divider(),
                         ),
-                        QRCode(
-                          size: 300,
-                          data: getQrCodeData(),
-                        ),
-                        Text(
-                          "checkin_desc".tr,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                        ),
+                        Expanded(child: _buildCheckinBody(setStateModal)),
                       ],
                     ),
                   ),
@@ -2377,6 +2367,59 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             );
           },
         );
+      },
+    );
+  }
+
+  /// Switch entre QR estático (fallback) y scanner según `payment_status`:
+  ///   - 'Paid' → cámara `mobile_scanner` que apunta al QR rotativo del kiosko.
+  ///             Al detectar → POST `/v1/qr_appointment_checkin` con
+  ///             `{appointment_id, kiosk_token}`. Toast + refresh queue.
+  ///   - otro    → QR estático actual (paciente lo muestra al desk).
+  Widget _buildCheckinBody(StateSetter setStateModal) {
+    final paid =
+        (appointmentModel?.paymentStatus ?? '').toLowerCase().trim() == 'paid';
+    if (!paid) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          QRCode(size: 300, data: getQrCodeData()),
+          const SizedBox(height: 16),
+          Text(
+            "checkin_desc".tr,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
+        ],
+      );
+    }
+    final apptIdStr = widget.appId ?? '';
+    final apptIdInt = int.tryParse(apptIdStr) ?? 0;
+    if (apptIdInt == 0) {
+      return Center(
+        child: Text(
+          "qr_invalid_appointment".tr,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.red),
+        ),
+      );
+    }
+    return _KioskoQrScanner(
+      appointmentId: apptIdInt,
+      onResult: (result) async {
+        // Toast con mensaje del backend.
+        Get.snackbar(
+          result.ok ? "success".tr : "error".tr,
+          result.message,
+          backgroundColor: result.ok ? Colors.green : Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        if (result.ok) {
+          // Refresh queue para que se vea el nuevo token en UI.
+          await getAndSetQueue();
+          if (mounted) Navigator.of(context).pop();
+        }
       },
     );
   }
@@ -2560,5 +2603,174 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
 
     await getAndSetData();
   }
+}
 
+/// Cámara que escanea el QR rotativo del kiosko (modo-1) y dispara el
+/// check-in self-service. Solo se monta en `openBoxToCheckIn` cuando la
+/// cita está pagada. Single-shot: una vez que detecta un QR válido, llama
+/// `onResult` y deja de procesar (evita doble-POST con el mismo token).
+class _KioskoQrScanner extends StatefulWidget {
+  final int appointmentId;
+  final Future<void> Function(QrCheckinResult) onResult;
+  const _KioskoQrScanner({
+    required this.appointmentId,
+    required this.onResult,
+  });
+
+  @override
+  State<_KioskoQrScanner> createState() => _KioskoQrScannerState();
+}
+
+class _KioskoQrScannerState extends State<_KioskoQrScanner> {
+  final MobileScannerController _controller = MobileScannerController(
+    detectionSpeed: DetectionSpeed.normal,
+    formats: const [BarcodeFormat.qrCode],
+  );
+  bool _processing = false;
+  bool _stopped = false;
+  String? _lastError;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Parsea el payload del QR. El kiosko emite el token plano (string base64url
+  /// 32+ chars). Para defensa, también aceptamos JSON con campo `token` o
+  /// `kiosk_token` por si el formato evoluciona.
+  String? _extractToken(String payload) {
+    final t = payload.trim();
+    if (t.isEmpty) return null;
+    // Try JSON first.
+    try {
+      final obj = jsonDecode(t);
+      if (obj is Map) {
+        final v = obj['token'] ?? obj['kiosk_token'];
+        if (v is String && v.isNotEmpty) return v;
+      }
+    } catch (_) {/* not JSON, fallthrough */}
+    return t;
+  }
+
+  Future<void> _onDetect(BarcodeCapture capture) async {
+    if (_processing || _stopped) return;
+    final raw = capture.barcodes.firstOrNull?.rawValue;
+    if (raw == null || raw.isEmpty) return;
+    final token = _extractToken(raw);
+    if (token == null) {
+      setState(() => _lastError = "qr_invalid_payload".tr);
+      return;
+    }
+    setState(() {
+      _processing = true;
+      _lastError = null;
+    });
+    // Parar la cámara mientras procesamos para evitar que `onDetect` se
+    // dispare en bucle con el mismo QR (los browsers/Bematech del kiosko
+    // siguen mostrando el mismo token hasta el próximo refresh @ 60s).
+    await _controller.stop();
+    try {
+      final result = await AppointmentCheckinService.qrCheckin(
+        appointmentId: widget.appointmentId,
+        kioskToken: token,
+      );
+      if (!mounted) return;
+      await widget.onResult(result);
+      if (!result.ok && mounted) {
+        // Error de negocio: token vencido / ya usado / día equivocado /
+        // ownership / etc. Marcamos stopped + mostramos mensaje + botón
+        // "Reintentar" que reactiva la cámara cuando el user esté listo.
+        setState(() {
+          _processing = false;
+          _stopped = true;
+          _lastError = result.message;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _processing = false;
+        _stopped = true;
+        _lastError = e.toString();
+      });
+    }
+  }
+
+  Future<void> _retry() async {
+    setState(() {
+      _stopped = false;
+      _lastError = null;
+    });
+    await _controller.start();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            "scan_kiosko_qr_desc".tr,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              MobileScanner(
+                controller: _controller,
+                onDetect: _onDetect,
+              ),
+              // Frame guide central.
+              Center(
+                child: Container(
+                  width: 260,
+                  height: 260,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white, width: 3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              if (_processing)
+                Container(
+                  color: Colors.black54,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (_lastError != null) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              _lastError!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.red, fontSize: 13),
+            ),
+          ),
+        ],
+        if (_stopped) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ElevatedButton.icon(
+              onPressed: _retry,
+              icon: const Icon(Icons.refresh),
+              label: Text("retry".tr),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ],
+    );
+  }
 }

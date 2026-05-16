@@ -146,6 +146,11 @@ class ApiContents {
 
   // --- Checkin ---
   static const getAppointmentCheckInUserUrl = "$baseApiUrl/get_appointment_check_in";
+  // Self-service QR check-in: paciente escanea el QR rotativo del kiosko y
+  // postea acá con su appointment_id + el token del QR. El backend valida
+  // ownership + payment_status=Paid + clinic_match + token single-use, y
+  // emite socket `patient.checked_in` al channel kiosk.{clinic_id}.
+  static const qrAppointmentCheckinUrl = "$baseApiUrl/qr_appointment_checkin";
 
   // --- Payment Gateway ---
   static const getPaymentGatewayActiveUrl = "$baseApiUrl/get_payment_gateway_active";

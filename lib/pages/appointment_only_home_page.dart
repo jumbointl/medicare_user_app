@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controller/notification_dot_controller.dart';
 import '../controller/user_controller.dart';
+import '../helpers/date_time_helper.dart';
 import '../helpers/route_helper.dart';
 import '../utilities/app_constans.dart';
 import '../model/appointment_model.dart';
@@ -529,6 +530,9 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
       return RefreshIndicator(
         onRefresh: _loadAppointments,
         child: ListView(
+          // AlwaysScrollable garantiza pull-down funcione aunque la lista
+          // esté vacía o muy corta para overflow del viewport.
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
             const SizedBox(height: 80),
             Center(
@@ -548,6 +552,7 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
     return RefreshIndicator(
       onRefresh: _loadAppointments,
       child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(8),
         itemCount: filtered.length,
         itemBuilder: (_, i) => _buildAppointmentCard(filtered[i]),
@@ -628,14 +633,23 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
               },
             ),
             Text(
-              '${a.date ?? '-'}  ·  ${a.timeSlot ?? ''}',
+              // Backend devuelve `date` como ISO completo (UTC midnight) y
+              // `time_slot` como "HH:mm:ss". Formateamos: "13 May, 2026 · 15:13".
+              [
+                DateTimeHelper.getDataFormat(a.date),
+                DateTimeHelper.convertTo12HourFormat(a.timeSlot ?? ''),
+              ].where((s) => s.isNotEmpty).join('  ·  '),
               style: const TextStyle(fontSize: 12, color: Colors.black54),
             ),
-            if ((a.type ?? '').isNotEmpty)
+            if ((a.type ?? '').isNotEmpty || a.id != null)
               Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Text(
-                  a.type!,
+                  [
+                    if ((a.type ?? '').isNotEmpty) a.type!,
+                    if (a.id != null)
+                      "appointment_id".trParams({"id": "${a.id}"}),
+                  ].join('  ·  '),
                   style: TextStyle(
                       fontSize: 11,
                       color: color,
@@ -664,21 +678,34 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
       }
     }
     if (seen.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            "no_doctor_found".tr,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
+      return RefreshIndicator(
+        onRefresh: _loadAppointments,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            const SizedBox(height: 80),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  "no_doctor_found".tr,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
     final list = seen.values.toList();
-    return ListView.builder(
-      padding: const EdgeInsets.all(8),
-      itemCount: list.length,
-      itemBuilder: (_, i) {
+    return RefreshIndicator(
+      onRefresh: _loadAppointments,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(8),
+        itemCount: list.length,
+        itemBuilder: (_, i) {
         final a = list[i];
         final hasImage = (a.doctImage ?? '').isNotEmpty;
         return Card(
@@ -720,6 +747,7 @@ class _AppointmentOnlyHomePageState extends State<AppointmentOnlyHomePage> {
           ),
         );
       },
+      ),
     );
   }
 

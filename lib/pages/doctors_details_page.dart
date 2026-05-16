@@ -1179,6 +1179,22 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
       _isLoading = true;
     });
 
+    try {
+      await _loadDoctorData();
+    } finally {
+      // Garantiza salir del progress indicator aunque el fetch falle, devuelva
+      // null, o tire excepción. Antes solo se apagaba dentro del happy path
+      // (if resDoctors != null) — los doctores fantasma dejaban el loading
+      // infinito y el user tenía que matar con back.
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadDoctorData() async {
     _selectedDate = DateTimeHelper.getYYYMMDDFormatDate(
       DateTime.now().toString(),
     );
@@ -1268,10 +1284,11 @@ class _DoctorsDetailsPageState extends State<DoctorsDetailsPage> {
       if (activePG != null) {
         activePaymentGatewayName = activePG.title;
       }
-
-      setState(() {
-        _isLoading = false;
-      });
+    } else {
+      // Doctor no encontrado (clinicId+doctId no matchearon en
+      // view_clinic_doctors y el legacy /get_doctor/{id} también devolvió
+      // null). Mostrar feedback y dejar que el user use back.
+      IToastMsg.showMessage("no_doctor_found".tr);
     }
   }
 

@@ -483,6 +483,10 @@ final Map<String, Map<String, String>> zhKeys = {
     "login_dev_login_as_button": "以他人身份登录（impersonate）",
     "login_dev_no_permission": "您没有权限使用 /login/dev。需要超级管理员或开发者角色。",
     "login_dev_user_not_exists": "要模拟的用户不存在。",
-    "login_dev_impersonated_as": "已登录为 @email（模拟）"
+    "login_dev_impersonated_as": "已登录为 @email（模拟）",
+    "retry": "重试",
+    "qr_invalid_payload": "二维码无效",
+    "qr_invalid_appointment": "预约编号无效",
+    "scan_kiosko_qr_desc": "请将摄像头对准诊所自助机二维码"
   }
 };

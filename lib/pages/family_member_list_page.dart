@@ -29,6 +29,8 @@ class _FamilyMemberListPageState extends State<FamilyMemberListPage> {
   final TextEditingController _fNameController=TextEditingController();
   final TextEditingController _lNameController=TextEditingController();
   final TextEditingController _dobController=TextEditingController();
+  final TextEditingController _emailController=TextEditingController();
+  final TextEditingController _passwordController=TextEditingController();
   bool _isLoading=false;
   String? selectedDate="";
   String? selectedFamilyMemberId="";
@@ -228,7 +230,19 @@ class _FamilyMemberListPageState extends State<FamilyMemberListPage> {
                                 fontWeight: FontWeight.w500,
                                 fontSize:15
                             ),),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 8),
+                          // Hint sobre los 3 escenarios (post-refactor 2026-05-16).
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Text(
+                              "family_member_form_hint".tr,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           Container(
                             decoration: ThemeHelper().inputBoxDecorationShaddow(),
                             child: TextFormField(
@@ -263,7 +277,12 @@ class _FamilyMemberListPageState extends State<FamilyMemberListPage> {
                                 keyboardType:Platform.isIOS? const TextInputType.numberWithOptions(decimal: true, signed: true)
                                     : TextInputType.number,
                                 validator: (item) {
-                                  return item!.length > 5 ? null : "enter_valid_number".tr;
+                                  // Phone opcional: vacío OK (caso familiar
+                                  // 'managed' sin teléfono propio, hijo menor).
+                                  // Si lo ingresan, debe ser válido.
+                                  final v = item?.trim() ?? '';
+                                  if (v.isEmpty) return null;
+                                  return v.length > 5 ? null : "enter_valid_number".tr;
                                 },
                                 controller: _mobileController,
                                 decoration: InputDecoration(
@@ -307,6 +326,48 @@ class _FamilyMemberListPageState extends State<FamilyMemberListPage> {
                                 )
                             ),
                           ),
+                          // Email opcional — útil si el familiar usa Google
+                          // login. Solo se muestra al ADD (no en update).
+                          if (isForAdding) ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              decoration: ThemeHelper().inputBoxDecorationShaddow(),
+                              child: TextFormField(
+                                keyboardType: TextInputType.emailAddress,
+                                autocorrect: false,
+                                controller: _emailController,
+                                validator: (v) {
+                                  final s = v?.trim() ?? '';
+                                  if (s.isEmpty) return null;
+                                  if (!s.contains('@')) return "email_invalid".tr;
+                                  return null;
+                                },
+                                decoration: ThemeHelper().textInputDecoration(
+                                  'email_optional'.tr,
+                                ),
+                              ),
+                            ),
+                            // Password requerido SOLO si phone provisto +
+                            // familiar nuevo. El backend valida; acá solo
+                            // marcamos suggerencia visual.
+                            const SizedBox(height: 10),
+                            Container(
+                              decoration: ThemeHelper().inputBoxDecorationShaddow(),
+                              child: TextFormField(
+                                obscureText: true,
+                                controller: _passwordController,
+                                validator: (v) {
+                                  final s = v ?? '';
+                                  if (s.isEmpty) return null;
+                                  if (s.length < 6) return "password_too_short".tr;
+                                  return null;
+                                },
+                                decoration: ThemeHelper().textInputDecoration(
+                                  'password_optional'.tr,
+                                ),
+                              ),
+                            ),
+                          ],
                       const SizedBox(height: 10),
                       Container(
                         decoration: ThemeHelper().inputBoxDecorationShaddow(),
@@ -433,26 +494,29 @@ class _FamilyMemberListPageState extends State<FamilyMemberListPage> {
       _isLoading=true;
     });
 
-    final res=await FamilyMembersService.addUser(
-      dob: selectedDate??"",
-        gender: selectedGender??"",
-        fName: _fNameController.text,
-        lName: _lNameController.text,
-        isdCode: phoneCode,
-        phone: _mobileController.text);
-    if(res!=null){
+    final res = await FamilyMembersService.addUser(
+      dob: selectedDate ?? "",
+      gender: selectedGender ?? "",
+      fName: _fNameController.text,
+      lName: _lNameController.text,
+      isdCode: phoneCode,
+      phone: _mobileController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+    // Backend devuelve { response, status, message }. Si status:false
+    // (e.g. "Password required for new member with phone" o
+    // "Cannot register self as family member"), mostramos el message.
+    if (res is Map && res['status'] == false) {
+      IToastMsg.showMessage(
+        (res['message'] as String?) ?? "error".tr,
+      );
+    } else if (res != null) {
       IToastMsg.showMessage("success".tr);
       _familyMembersController.getData();
       clearData();
-      setState(() {
-        _isLoading=false;
-      });
-    }else{
-      setState(() {
-        _isLoading=false;
-      });
     }
-
+    setState(() => _isLoading = false);
   }
   void handleDeleteDataData(String id) async{
     setState(() {
@@ -540,6 +604,8 @@ class _FamilyMemberListPageState extends State<FamilyMemberListPage> {
     _lNameController.clear();
     _dobController.clear();
     _mobileController.clear();
+    _emailController.clear();
+    _passwordController.clear();
      selectedGender=null;
      selectedDate="";
     selectedFamilyMemberId="";

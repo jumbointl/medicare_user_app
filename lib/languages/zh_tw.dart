@@ -487,6 +487,11 @@ final Map<String, Map<String, String>> zhTwKeys = {
     "retry": "再試一次",
     "qr_invalid_payload": "QR Code 無效",
     "qr_invalid_appointment": "預約編號無效",
-    "scan_kiosko_qr_desc": "請將鏡頭對準診所自助機 QR Code"
+    "scan_kiosko_qr_desc": "請將鏡頭對準診所自助機 QR Code",
+    "family_member_form_hint": "電話與密碼為選填。若全部留空，家屬將無獨立登入（由您管理）。",
+    "email_optional": "電子郵件(選填)",
+    "password_optional": "密碼(選填)",
+    "email_invalid": "電子郵件無效",
+    "password_too_short": "至少 6 個字元"
   }
 };

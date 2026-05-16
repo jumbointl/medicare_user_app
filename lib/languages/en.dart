@@ -504,6 +504,11 @@ final Map<String, Map<String, String>> enKeys = {
     "retry": "Retry",
     "qr_invalid_payload": "Invalid QR code",
     "qr_invalid_appointment": "Invalid appointment ID",
-    "scan_kiosko_qr_desc": "Point the camera at the clinic kiosk QR"
+    "scan_kiosko_qr_desc": "Point the camera at the clinic kiosk QR",
+    "family_member_form_hint": "Phone and password are optional. If left empty, the family member has no login (you manage them).",
+    "email_optional": "Email (optional)",
+    "password_optional": "Password (optional)",
+    "email_invalid": "Invalid email",
+    "password_too_short": "Minimum 6 characters"
   }
 };

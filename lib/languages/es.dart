@@ -504,6 +504,11 @@ final Map<String, Map<String, String>> esKeys = {
 "retry": "Reintentar",
 "qr_invalid_payload": "Código QR inválido",
 "qr_invalid_appointment": "ID de cita inválido",
-"scan_kiosko_qr_desc": "Apuntá la cámara al QR del kiosko de la clínica"
+"scan_kiosko_qr_desc": "Apuntá la cámara al QR del kiosko de la clínica",
+"family_member_form_hint": "Teléfono y contraseña son opcionales. Si dejás todo vacío, el familiar queda sin login propio (vos lo gestionás).",
+"email_optional": "Email (opcional)",
+"password_optional": "Contraseña (opcional)",
+"email_invalid": "Email inválido",
+"password_too_short": "Mínimo 6 caracteres"
 }
 };

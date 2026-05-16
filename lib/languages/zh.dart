@@ -487,6 +487,11 @@ final Map<String, Map<String, String>> zhKeys = {
     "retry": "重试",
     "qr_invalid_payload": "二维码无效",
     "qr_invalid_appointment": "预约编号无效",
-    "scan_kiosko_qr_desc": "请将摄像头对准诊所自助机二维码"
+    "scan_kiosko_qr_desc": "请将摄像头对准诊所自助机二维码",
+    "family_member_form_hint": "电话和密码可选。如全部留空，家庭成员将无法独立登录（由您管理）。",
+    "email_optional": "邮箱(选填)",
+    "password_optional": "密码(选填)",
+    "email_invalid": "邮箱无效",
+    "password_too_short": "至少 6 个字符"
   }
 };

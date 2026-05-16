@@ -487,6 +487,11 @@ final Map<String, Map<String, String>> ptKeys = {
     "retry": "Tentar novamente",
     "qr_invalid_payload": "Código QR inválido",
     "qr_invalid_appointment": "ID de consulta inválido",
-    "scan_kiosko_qr_desc": "Aponte a câmera ao QR do quiosque da clínica"
+    "scan_kiosko_qr_desc": "Aponte a câmera ao QR do quiosque da clínica",
+    "family_member_form_hint": "Telefone e senha são opcionais. Se deixar tudo vazio, o familiar fica sem login próprio (você gerencia).",
+    "email_optional": "Email (opcional)",
+    "password_optional": "Senha (opcional)",
+    "email_invalid": "Email inválido",
+    "password_too_short": "Mínimo 6 caracteres"
   }
 };

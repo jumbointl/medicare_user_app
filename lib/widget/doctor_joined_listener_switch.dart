@@ -58,6 +58,16 @@ class DoctorJoinedAnnouncerController {
     }
   }
 
+  /// Habla un texto arbitrario (sin formatear). Usado para mensajes de
+  /// confirmación del switch — distintos del anuncio de "doctor entró".
+  Future<void> speakRaw(String text) async {
+    try {
+      await _configureTtsOnce();
+      await _tts.stop();
+      await _tts.speak(text);
+    } catch (_) {}
+  }
+
   Future<void> dispose() async {
     try {
       await _tts.stop();
@@ -103,8 +113,12 @@ class _DoctorJoinedListenerSwitchState
     if (!mounted) return;
     setState(() {});
     if (value) {
-      // Confirmación audible + prueba de TTS.
-      await widget.controller.announce(doctorName: '');
+      // Confirmación audible al activar el switch. NO usamos
+      // `announce()` porque ese habla "el doctor entró" y daría una
+      // falsa señal (Pablo 2026-05-16). Hablamos un mensaje distinto.
+      await widget.controller.speakRaw(
+        'Anuncio activado. Te avisaré cuando el doctor entre.',
+      );
     }
   }
 

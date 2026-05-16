@@ -711,6 +711,12 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
 
     try {
       if (_isGoogleMeetProvider) {
+        // Pablo 2026-05-16: si el doctor reinició la sala (típicamente
+        // tras corte de llamada), el meeting_link cacheado en el cliente
+        // es viejo y la patient termina en una sala distinta. Refrescar
+        // ANTES de abrir para garantizar que tenemos el link más reciente.
+        await _refreshJoinData();
+
         final link = _effectiveMeetingLink.trim();
 
         if (link.isNotEmpty) {

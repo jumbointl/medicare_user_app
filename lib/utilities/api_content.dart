@@ -50,6 +50,10 @@ class ApiContents {
   static const labInvoiceUrl = "$baseApiUrl/invoice/generatePDFLab";
   static const invoiceUrl = "$baseApiUrl/invoice/generatePDF";
 
+  // PIX — paciente inicia el cobro desde la app. Backend detecta caller
+  // como patient.user_id del appointment Y no emite al panel-TV.
+  static const pixInitUrl = "$baseApiUrl/pix/init";
+
   // --- Auth ---
   static const loginPhoneUrl = "$baseApiUrl/login_phone";
   static const reLoginPhoneUrl = "$baseApiUrl/re_login_phone";

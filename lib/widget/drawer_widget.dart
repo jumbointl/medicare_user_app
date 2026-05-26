@@ -18,6 +18,7 @@ import '../helpers/date_time_helper.dart';
 import '../helpers/route_helper.dart';
 import '../utilities/colors_constant.dart';
 import '../utilities/sharedpreference_constants.dart';
+import 'app_links_button.dart';
 import 'image_box_widget.dart';
 
 class IDrawerWidget{
@@ -194,6 +195,16 @@ class IDrawerWidget{
             Get.back();
             Get.toNamed(RouteHelper.getTermCondPageRoute());
           }),
+          Builder(
+            builder: (innerCtx) => _buildCardBox(
+              "app_downloads".tr,
+              Icons.cloud_download,
+              () async {
+                Get.back();
+                await AppLinksButton.show(innerCtx);
+              },
+            ),
+          ),
           const Divider(),
           _buildLogOutBtn(userController),
           Padding(

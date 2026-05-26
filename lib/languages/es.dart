@@ -509,6 +509,22 @@ final Map<String, Map<String, String>> esKeys = {
 "email_optional": "Email (opcional)",
 "password_optional": "Contraseña (opcional)",
 "email_invalid": "Email inválido",
-"password_too_short": "Mínimo 6 caracteres"
+"password_too_short": "Mínimo 6 caracteres",
+"links": "Enlaces",
+"close": "Cerrar",
+"pix.payNow": "Pagar con PIX",
+"pix.title": "Pagar con PIX",
+"pix.copyPaste": "Copia y pega",
+"pix.copied": "Código copiado",
+"pix.hint": "Escaneá el QR o pegá el código en tu app de PIX para pagar.",
+"pix.invalidAmount": "Monto inválido",
+"pix.invalidAppointment": "Cita inválida",
+"pix.error": "Error iniciando PIX",
+"app_downloads": "Descargas de la app",
+"app_downloads_title": "Descargas de la app",
+"app_downloads_unavailable": "(no disponible)",
+"apk_stable": "APK estable",
+"apk_dev": "APK dev",
+"play_store_label": "Play Store"
 }
 };

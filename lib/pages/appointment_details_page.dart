@@ -23,6 +23,7 @@ import '../model/appointment_model.dart';
 import '../widget/doctor_joined_listener_switch.dart';
 import '../widget/global_call_listener_icon.dart';
 import '../widget/patient_call_listener_switch.dart';
+import '../widget/pay_pix_section.dart';
 import '../model/clinic_model.dart';
 import '../model/invoice_model.dart';
 import '../model/prescription_model.dart';
@@ -553,6 +554,13 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             : Container(),
         _buildClinicListTile(),
         const SizedBox(height: 3),
+        // PayPixSection — paciente paga su cita Unpaid desde su mobile.
+        // Backend valida ownership patient.user_id y NO emite al panel-TV.
+        if (appointmentModel != null)
+          PayPixSection(
+            appointment: appointmentModel!,
+            onPaid: () => getAndSetData(),
+          ),
         _buildPaymentCard(),
         appointmentModel?.status == "Visited" ||
             appointmentModel?.status == "Completed"

@@ -10,4 +10,12 @@ class AppConstants{
   // entorno productivo. Para builds dev locales bajarlo a false si querés
   // esconder la entrada.
   static const bool isProductionMode = true;
+
+  // Links a APKs/Play Store mostrados en el dialog AppLinks (login + drawer).
+  // Patrón espejo de monalisa_app_001 (Memory.APP_APK_URL / OLD / PLAY_STORE).
+  static const String apkStableUrl =
+      'https://drive.google.com/file/d/1KXzSRtMpMhd9hXdhLU3_ws1DgzUMsGid/view?usp=sharing';
+  static const String apkDevUrl =
+      'https://drive.google.com/file/d/1ZHFQ6P000kk8pAowouOp7vk4hKzH1fdY/view?usp=sharing';
+  static const String playStoreUrl = '';
 }

@@ -20,6 +20,7 @@ import '../../utilities/app_constans.dart';
 import '../../utilities/colors_constant.dart';
 import '../../utilities/image_constants.dart';
 import '../../utilities/sharedpreference_constants.dart';
+import '../../widget/app_links_button.dart';
 import '../../widget/button_widget.dart';
 import '../../widget/input_label_widget.dart';
 import '../../widget/loading_Indicator_widget.dart';
@@ -94,7 +95,18 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body:   _buildSlidingBody()
+        body: Stack(
+          children: [
+            _buildSlidingBody(),
+            // Botón de links (APK stable / dev / Play Store) en la esquina
+            // superior derecha. Espejo del patrón de monalisa_app_001.
+            Positioned(
+              top: 0,
+              right: 0,
+              child: SafeArea(child: const AppLinksButton()),
+            ),
+          ],
+        ),
     );
   }
   _buildSlidingBody(){

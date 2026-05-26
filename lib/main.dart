@@ -50,6 +50,16 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             theme: themeController.darkTheme ? dark : light,
             getPages: RouteHelper.routes,
+            // Android 15 (API 35+) habilita edge-to-edge por default y el
+            // contenido se solapa con la barra de gestos del sistema. Wrap
+            // global en SafeArea(bottom:true) evita que se corten controles
+            // sin tener que tocar cada page. top:false porque la AppBar
+            // ya respeta el status bar inset.
+            builder: (context, child) => SafeArea(
+              top: false,
+              bottom: true,
+              child: child ?? const SizedBox.shrink(),
+            ),
           );
         });
       },

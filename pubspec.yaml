@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.30+30
+version: 1.0.34+34
 
 environment:
   sdk: ^3.9.2
@@ -89,6 +89,8 @@ dependencies:
   # Panel TV — TTS para locutar el turno cuando el switch "Escuchar mi
   # turno" está activado y el doctor llama al paciente desde la TV.
   flutter_tts: ^4.2.3
+  # PIX QR rendering en el PayPixSection (paciente paga su cita).
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

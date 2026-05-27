@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.solexpresspy.medicare"
-        minSdk = flutter.minSdkVersion
+        minSdk = 30
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

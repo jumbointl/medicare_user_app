@@ -46,3 +46,6 @@ app.*.map.json
 
 # Build / snapshot zips (workspace rule 2026-05-14)
 *.zip
+
+# Firebase generado (API keys) — no commitear
+**/firebase_options.dart
